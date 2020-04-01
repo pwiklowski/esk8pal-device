@@ -9,6 +9,11 @@
 #include "driver/sdspi_host.h"
 #include "sdmmc_cmd.h"
 
+extern "C"
+{
+  void app_main(void);
+}
+
 static const char *TAG = "esk8";
 
 void init_sd()
@@ -20,16 +25,17 @@ void init_sd()
 
   sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
 
-  gpio_set_pull_mode(15, GPIO_PULLUP_ONLY); // CMD, needed in 4- and 1- line modes
-  gpio_set_pull_mode(2, GPIO_PULLUP_ONLY);  // D0, needed in 4- and 1-line modes
-  gpio_set_pull_mode(4, GPIO_PULLUP_ONLY);  // D1, needed in 4-line mode only
-  gpio_set_pull_mode(12, GPIO_PULLUP_ONLY); // D2, needed in 4-line mode only
-  gpio_set_pull_mode(13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
+  gpio_set_pull_mode(GPIO_NUM_15, GPIO_PULLUP_ONLY); // CMD, needed in 4- and 1- line modes
+  gpio_set_pull_mode(GPIO_NUM_2, GPIO_PULLUP_ONLY); // D0, needed in 4- and 1-line modes
+  gpio_set_pull_mode(GPIO_NUM_4, GPIO_PULLUP_ONLY); // D1, needed in 4-line mode only
+  gpio_set_pull_mode(GPIO_NUM_12, GPIO_PULLUP_ONLY); // D2, needed in 4-line mode only
+  gpio_set_pull_mode(GPIO_NUM_13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
 
   esp_vfs_fat_sdmmc_mount_config_t mount_config = {
       .format_if_mount_failed = false,
       .max_files = 5,
-      .allocation_unit_size = 16 * 1024};
+      .allocation_unit_size = 16 * 1024
+      };
 
   sdmmc_card_t *card;
   esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
