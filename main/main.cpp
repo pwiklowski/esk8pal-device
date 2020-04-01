@@ -9,6 +9,8 @@
 #include "driver/sdspi_host.h"
 #include "sdmmc_cmd.h"
 
+#include "gatt.h"
+
 extern "C"
 {
   void app_main(void);
@@ -63,8 +65,12 @@ void app_main(void)
 {
   init_sd();
 
-  // First create a file.
-  ESP_LOGI(TAG, "Opening file");
+  ble_init();
+
+
+
+    // First create a file.
+    ESP_LOGI(TAG, "Opening file");
   FILE *f = fopen("/sdcard/hello.txt", "w");
   if (f == NULL)
   {
