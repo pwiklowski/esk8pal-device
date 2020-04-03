@@ -1,1 +1,1 @@
-idf_component_register(SRCS "state.cpp" "logger.cpp" "gatt.c" "main.cpp" INCLUDE_DIRS ".")
+idf_component_register(SRCS "profile_battery.c" "state.cpp" "logger.cpp" "gatt.c" "main.cpp" INCLUDE_DIRS ".")
