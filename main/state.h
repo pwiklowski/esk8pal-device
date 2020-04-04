@@ -7,6 +7,8 @@ typedef union {
   char bytes[sizeof(double)];
 } DoubleCharacteristic;
 
+
+
 struct CurrentState {
   DoubleCharacteristic current;
   DoubleCharacteristic voltage;
@@ -16,6 +18,11 @@ struct CurrentState {
   DoubleCharacteristic speed;
   DoubleCharacteristic latitude;
   DoubleCharacteristic longitude;
+
+  uint8_t day;
+  uint8_t month;
+  uint16_t year;
+  uint32_t time;
 };
 
 #endif
