@@ -13,8 +13,8 @@ static const char *TAG = "SD";
 
 extern struct CurrentState state;
 
-char* generateLogFilename() {
-  return "/sdcard/logfile.log";
+void generateLogFilename(char* name) {
+  sprintf(name, "/sdcard/log%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
 }
 
 void init_sd()
@@ -63,7 +63,12 @@ void logger(void* params) {
 
   while (1)
   {
-    char* log_filename = generateLogFilename();
+    if (state.time == 0) {
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+      continue;
+    }
+    char log_filename[30];
+    generateLogFilename(log_filename);
     uint32_t i = 0;
 
     ESP_LOGI(TAG, "Create file %s", log_filename);
