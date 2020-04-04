@@ -33,6 +33,7 @@ void init() {
 
 
 void get_time_date(uint8_t* data) {
+    //$GNZDA,142713.000,04,04,2020,00,00*4A
     char substr[10];
 
     char* start = strchr((char*)data, ',') + 1;
@@ -56,9 +57,56 @@ void get_time_date(uint8_t* data) {
     state.year = atoi(substr);
 }
 
+void get_location(uint8_t* data) {
+    char substr[12];
+
+    double lat, lon;
+    char lat_ind, lon_ind;
+
+    char* start = strchr((char*)data, ',') + 1;
+    strncpy(substr, start, 2);
+    substr[2] = 0;
+    lat = atoi(substr);
+
+    strncpy(substr, start + 2, 7);
+    substr[7] = 0;
+    lat = lat + atof(substr)/60;
+
+    start = strchr((char*)start, ',') + 1;
+    strncpy(substr, start, 1);
+    substr[1] = 0;
+    lat_ind = substr[0];
+
+    start = strchr((char*)start, ',') + 1;
+    strncpy(substr, start, 3);
+    substr[3] = 0;
+    lon = atoi(substr);
+
+    strncpy(substr, start + 3, 7);
+    substr[7] = 0;
+    lon = lon + atof(substr)/60;
+
+    start = strchr((char*)start, ',') + 1;
+    strncpy(substr, start, 1);
+    substr[1] = 0;
+    lon_ind = substr[0];
+
+    if (lat_ind == 'S') {
+        lat = -lat;
+    }
+
+    if (lon_ind) {
+        lon = -lon;
+    }
+
+    state.latitude.value = lat;
+    state.longitude.value = lon;
+}
+
 void handleNmeaData(uint8_t* data, uint16_t len){
 
     get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
+    get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
 }
 
 void rx_task() {
