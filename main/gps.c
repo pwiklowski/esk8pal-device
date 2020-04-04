@@ -111,7 +111,7 @@ void get_location(uint8_t* data) {
             lat = -lat;
         }
 
-        if (lon_ind) {
+        if (lon_ind == 'W') {
             lon = -lon;
         }
     }
