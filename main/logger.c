@@ -79,8 +79,9 @@ void logger(void* params) {
         ESP_LOGE(TAG, "Failed to open file for writing");
         return;
       }
-      fprintf(f, "%d, %f, %f, %f, %f, %f, %f, %f\n", 
+      fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f\n", 
         esp_log_timestamp(), 
+        state.time,
         state.latitude.value,
         state.longitude.value,
         state.speed.value,
