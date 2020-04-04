@@ -12,12 +12,15 @@
 
 #include "gatt.h"
 #include "profile_battery.h"
+#include "location_service.h"
 
 #include "sdkconfig.h"
 
-#define GATTS_TAG "GATTS_DEMO_PW"
-#define TEST_MANUFACTURER_DATA_LEN  17
-#define PROFILE_NUM 1
+#define GATTS_TAG "GATTS"
+
+#define PROFILE_NUM 2
+#define BATTERY_SERVICE_ID 0
+#define LOCATION_SERVICE_ID 1
 
 struct gatts_profile_inst gl_profile_tab[PROFILE_NUM];
 
@@ -32,8 +35,6 @@ esp_ble_adv_params_t adv_params = {
     .channel_map        = ADV_CHNL_ALL,
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
-
-
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
     switch (event) {
@@ -143,7 +144,8 @@ void ble_init()
         return;
     }
 
-    gl_profile_tab[PROFILE_BATTERY_ID] = init_profile();
+    gl_profile_tab[BATTERY_SERVICE_ID] = init_battery_service();
+    gl_profile_tab[LOCATION_SERVICE_ID] = init_location_service();
 
 
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
@@ -156,7 +158,12 @@ void ble_init()
         ESP_LOGE(GATTS_TAG, "gap register error, error code = %x", ret);
         return;
     }
-    ret = esp_ble_gatts_app_register(PROFILE_BATTERY_ID);
+    ret = esp_ble_gatts_app_register(BATTERY_SERVICE_ID);
+    if (ret){
+        ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
+        return;
+    }
+    ret = esp_ble_gatts_app_register(LOCATION_SERVICE_ID);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
         return;

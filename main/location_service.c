@@ -1,3 +1,4 @@
+
  #include "freertos/FreeRTOS.h"
  #include "freertos/task.h"
  #include "freertos/event_groups.h"
@@ -11,9 +12,9 @@
 #include "esp_bt_main.h"
 #include "gatt.h"
 #include "esp_gatt_common_api.h"
-#include "profile_battery.h"
+#include "location_service.h"
 
-#define GATTS_TABLE_TAG "BatteryService"
+#define GATTS_TABLE_TAG "LocationService"
 
 #define SVC_INST_ID                 0
 
@@ -35,14 +36,14 @@ typedef struct {
 
 prepare_type_env_t prepare_write_env;
 
-uint8_t battery_service_uuid[16] = {
+uint8_t location_service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value
     0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
 };
 
 /* The length of adv data must be less than 31 bytes */
-esp_ble_adv_data_t battery_adv_data = {
+esp_ble_adv_data_t location_adv_data = {
     .set_scan_rsp        = false,
     .include_name        = true,
     .include_txpower     = true,
@@ -53,13 +54,13 @@ esp_ble_adv_data_t battery_adv_data = {
     .p_manufacturer_data = NULL, //test_manufacturer,
     .service_data_len    = 0,
     .p_service_data      = NULL,
-    .service_uuid_len    = sizeof(battery_service_uuid),
-    .p_service_uuid      = battery_service_uuid,
+    .service_uuid_len    = sizeof(location_service_uuid),
+    .p_service_uuid      = location_service_uuid,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
 // scan response data
-esp_ble_adv_data_t battery_scan_rsp_data = {
+esp_ble_adv_data_t location_scan_rsp_data = {
     .set_scan_rsp        = true,
     .include_name        = true,
     .include_txpower     = true,
@@ -70,14 +71,14 @@ esp_ble_adv_data_t battery_scan_rsp_data = {
     .p_manufacturer_data = NULL, //&test_manufacturer[0],
     .service_data_len    = 0,
     .p_service_data      = NULL,
-    .service_uuid_len    = sizeof(battery_service_uuid),
-    .p_service_uuid      = battery_service_uuid,
+    .service_uuid_len    = sizeof(location_service_uuid),
+    .p_service_uuid      = location_service_uuid,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
 extern esp_ble_adv_params_t adv_params;
 
-struct gatts_profile_inst battery_profile_tab = {
+struct gatts_profile_inst location_profile_tab = {
     .gatts_cb = gatts_service_event_handler,
     .gatts_if = ESP_GATT_IF_NONE,       /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
 };
@@ -139,11 +140,11 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
 };
 
-struct gatts_profile_inst init_battery_service() {
-    return battery_profile_tab;
+struct gatts_profile_inst init_location_service() {
+    return location_profile_tab;
 }
 
-void battery_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param)
+void location_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param)
 {
     ESP_LOGI(GATTS_TABLE_TAG, "prepare write, handle = %d, value len = %d", param->write.handle, param->write.len);
     esp_gatt_status_t status = ESP_GATT_OK;
@@ -189,7 +190,7 @@ void battery_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t 
 
 }
 
-void battery_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
+void location_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
     if (param->exec_write.exec_write_flag == ESP_GATT_PREP_WRITE_EXEC && prepare_write_env->prepare_buf){
         esp_log_buffer_hex(GATTS_TABLE_TAG, prepare_write_env->prepare_buf, prepare_write_env->prepare_len);
     }else{
@@ -202,7 +203,7 @@ void battery_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble
     prepare_write_env->prepare_len = 0;
 }
 
-void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
+void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
 {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
@@ -211,13 +212,13 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
             }
             //config adv data
-            esp_err_t ret = esp_ble_gap_config_adv_data(&battery_adv_data);
+            esp_err_t ret = esp_ble_gap_config_adv_data(&location_adv_data);
             if (ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "config adv data failed, error code = %x", ret);
             }
             adv_config_done |= ADV_CONFIG_FLAG;
             //config scan response data
-            ret = esp_ble_gap_config_adv_data(&battery_scan_rsp_data);
+            ret = esp_ble_gap_config_adv_data(&location_scan_rsp_data);
             if (ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "config scan response data failed, error code = %x", ret);
             }
@@ -273,13 +274,13 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                 }
             }else{
                 /* handle prepare write */
-                battery_prepare_write_event_env(gatts_if, &prepare_write_env, param);
+                location_prepare_write_event_env(gatts_if, &prepare_write_env, param);
             }
       	    break;
         case ESP_GATTS_EXEC_WRITE_EVT: 
             // the length of gattc prepare write data must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX. 
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_EXEC_WRITE_EVT");
-            battery_exec_write_event_env(&prepare_write_env, param);
+            location_exec_write_event_env(&prepare_write_env, param);
             break;
         case ESP_GATTS_MTU_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);

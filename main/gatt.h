@@ -42,6 +42,8 @@ struct gatts_profile_inst {
 #define ADV_CONFIG_FLAG             (1 << 0)
 #define SCAN_RSP_CONFIG_FLAG        (1 << 1)
 
+#define SAMPLE_DEVICE_NAME "esk8-logger"
+
 #ifdef __cplusplus
 extern "C"
 {
