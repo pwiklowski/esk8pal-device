@@ -103,10 +103,28 @@ void get_location(uint8_t* data) {
     state.longitude.value = lon;
 }
 
-void handleNmeaData(uint8_t* data, uint16_t len){
+void get_speed(uint8_t* data) {
+    if (data == NULL) {
+        return;
+    }
+    char substr[12];
 
+    char* start = strstr((char*) data, "N,");
+
+    if (start != NULL) {
+        start = start + 2;
+        char* end = strchr((char*)start, ',');
+
+        mempcpy(substr, start, end - start);
+        substr[end-start] = 0;
+        state.speed.value = atof(substr);
+    }
+}
+
+void handleNmeaData(uint8_t* data, uint16_t len){
     get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
     get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
+    get_speed((uint8_t*)strstr((char*)data, "$GNVTG"));
 }
 
 void rx_task() {
