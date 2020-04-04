@@ -8,7 +8,7 @@
 
 #include "logger.h"
 #include "gatt.h"
-
+#include "gps.h"
 #include "state.h"
 
 static const char *TAG = "esk8";
@@ -29,6 +29,8 @@ void app_main(void)
 
   init_sd();
   ble_init();
+
+  init_gps();
 
   //createLogger();
 }
