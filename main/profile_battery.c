@@ -12,6 +12,7 @@
 #include "gatt.h"
 #include "esp_gatt_common_api.h"
 #include "profile_battery.h"
+#include "state.h"
 
 #define GATTS_TABLE_TAG "BatteryService"
 
@@ -23,6 +24,8 @@
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 500
 #define PREPARE_BUF_MAX_SIZE        1024
 #define CHAR_DECLARATION_SIZE       (sizeof(uint8_t))
+
+extern struct CurrentState state;
 
 static uint8_t adv_config_done       = 0;
 /* Attributes State Machine */
@@ -111,10 +114,7 @@ static const uint16_t GATTS_CHAR_UUID_TOTAL_ENERGY  = 0xFF04;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
-//static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
 static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ;
-//static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
-static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 
 
 /* Full Database Description - Used to add attributes into the database */
@@ -133,7 +133,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_VOLTAGE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_VOLTAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.voltage.bytes), (uint8_t *)state.voltage.bytes}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_CURRENT]      =
@@ -143,7 +143,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_CURRENT]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_CURRENT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.current.bytes), (uint8_t *)state.current.bytes}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_USED_ENERGY]      =
@@ -153,7 +153,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_USED_ENERGY]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_USED_ENERGY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.used_energy.bytes), (uint8_t *)state.used_energy.bytes}},
 
 
     /* Characteristic Declaration */
@@ -164,7 +164,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_TOTAL_ENERGY]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TOTAL_ENERGY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.total_energy.bytes), (uint8_t *)state.total_energy.bytes}},
 
 };
 

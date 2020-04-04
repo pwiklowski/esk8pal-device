@@ -76,13 +76,13 @@ void logger(void* params) {
       }
       fprintf(f, "%d, %f, %f, %f, %f, %f, %f, %f\n", 
         esp_log_timestamp(), 
-        state.latitude,
-        state.longitude,
-        state.speed,
-        state.voltage,
-        state.current,
-        state.used_energy,
-        state.total_energy
+        state.latitude.value,
+        state.longitude.value,
+        state.speed.value,
+        state.voltage.value,
+        state.current.value,
+        state.used_energy.value,
+        state.total_energy.value
       );
       fclose(f);
       ESP_LOGI(TAG, "File written");

@@ -18,10 +18,14 @@ struct CurrentState state;
 
 void app_main(void)
 {
-  state.voltage = 1.0;
-  state.current = 2.0;
-  state.used_energy = 3.0;
-  state.total_energy = 4.0;
+  state.voltage.value = 1.0;
+  state.current.value = 2.0;
+  state.used_energy.value = 3.0;
+  state.total_energy.value = 4.0;
+
+  state.latitude.value = 50.081624;
+  state.longitude.value = 20.007325;
+  state.speed.value = 69.69;
 
   init_sd();
   ble_init();

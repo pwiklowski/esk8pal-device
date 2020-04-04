@@ -1,15 +1,21 @@
 #ifndef state_h
 #define state_h
 
-struct CurrentState {
-  double current;
-  double voltage;
-  double used_energy;
-  double total_energy;
 
-  double speed;
-  double latitude;
-  double longitude;
+typedef union {
+  double value;
+  char bytes[sizeof(double)];
+} DoubleCharacteristic;
+
+struct CurrentState {
+  DoubleCharacteristic current;
+  DoubleCharacteristic voltage;
+  DoubleCharacteristic used_energy;
+  DoubleCharacteristic total_energy;
+
+  DoubleCharacteristic speed;
+  DoubleCharacteristic latitude;
+  DoubleCharacteristic longitude;
 };
 
 #endif
