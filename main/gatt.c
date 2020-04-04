@@ -38,13 +38,13 @@ esp_ble_adv_params_t adv_params = {
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
     switch (event) {
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-        adv_config_done &= (~adv_config_flag);
+        adv_config_done &= (~ADV_CONFIG_FLAG);
         if (adv_config_done == 0){
             esp_ble_gap_start_advertising(&adv_params);
         }
         break;
     case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
-        adv_config_done &= (~scan_rsp_config_flag);
+        adv_config_done &= (~SCAN_RSP_CONFIG_FLAG);
         if (adv_config_done == 0){
             esp_ble_gap_start_advertising(&adv_params);
         }
