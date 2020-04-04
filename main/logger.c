@@ -1,4 +1,3 @@
-#include <string>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -12,7 +11,9 @@
 #define BASE_LOCATION "/sdcard/"
 static const char *TAG = "SD";
 
-std::string generateLogFilename() {
+extern struct CurrentState state;
+
+char* generateLogFilename() {
   return "/sdcard/logfile.log";
 }
 
@@ -59,31 +60,29 @@ void init_sd()
 }
 
 void logger(void* params) {
-  CurrentState* state = (CurrentState*) params;
 
   while (1)
   {
-    std::string log_filename = generateLogFilename();
+    char* log_filename = generateLogFilename();
     uint32_t i = 0;
 
-    ESP_LOGI(TAG, "Create file %s", log_filename.c_str());
+    ESP_LOGI(TAG, "Create file %s", log_filename);
 
     while(1) { // TODO add condition when logs neeed to be collected
-      FILE *f = fopen(log_filename.c_str(), "a");
+      FILE *f = fopen(log_filename, "a");
       if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");
         return;
       }
-      fprintf(f, "%d, %f, %f, %f, %f, %f, %f, %f, %f\n", 
+      fprintf(f, "%d, %f, %f, %f, %f, %f, %f, %f\n", 
         esp_log_timestamp(), 
-        state->getLatitude(),
-        state->getLongitude(),
-        state->getSpeed(),
-        state->getVoltage(),
-        state->getCurrent(),
-        state->getVoltage(),
-        state->getUsedEnergy(),
-        state->getTotalEnergy()
+        state.latitude,
+        state.longitude,
+        state.speed,
+        state.voltage,
+        state.current,
+        state.used_energy,
+        state.total_energy
       );
       fclose(f);
       ESP_LOGI(TAG, "File written");
@@ -94,8 +93,8 @@ void logger(void* params) {
   vTaskDelete(NULL);
 }
 
-void createLogger(CurrentState* state) {
+void createLogger() {
   TaskHandle_t xHandle = NULL;
 
-  xTaskCreate(logger, "logger_task", 1024 * 4, state, configMAX_PRIORITIES, &xHandle);
+  xTaskCreate(logger, "logger_task", 1024 * 4, NULL, configMAX_PRIORITIES, &xHandle);
 }

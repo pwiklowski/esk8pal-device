@@ -11,23 +11,20 @@
 
 #include "state.h"
 
-extern "C"
-{
-  void app_main(void);
-}
-
 static const char *TAG = "esk8";
 
 
+struct CurrentState state;
 
 void app_main(void)
 {
-  CurrentState state;
-
+  state.voltage = 1.0;
+  state.current = 2.0;
+  state.used_energy = 3.0;
+  state.total_energy = 4.0;
 
   init_sd();
-
   ble_init();
 
-  createLogger(&state);
+  //createLogger();
 }

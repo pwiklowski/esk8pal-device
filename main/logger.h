@@ -3,7 +3,7 @@
 
 #include "state.h"
 
-void createLogger(CurrentState* state);
+void createLogger();
 void init_sd();
 
 #endif
