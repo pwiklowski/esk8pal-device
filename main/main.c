@@ -10,6 +10,7 @@
 #include "gatt.h"
 #include "gps.h"
 #include "state.h"
+#include "power.h"
 
 static const char *TAG = "esk8";
 
@@ -31,6 +32,7 @@ void app_main(void)
   ble_init();
 
   init_gps();
+  power_sensor_init();
 
   //createLogger();
 }
