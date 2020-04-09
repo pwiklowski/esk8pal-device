@@ -12,7 +12,6 @@
 #include "gatt.h"
 #include "esp_gatt_common_api.h"
 #include "profile_battery.h"
-#include "state.h"
 
 #define GATTS_TABLE_TAG "BatteryService"
 
@@ -28,26 +27,12 @@
 extern struct CurrentState state;
 
 static uint8_t adv_config_done       = 0;
-/* Attributes State Machine */
-enum
-{
-    IDX_SVC,
-    IDX_CHAR_CURRENT,
-    IDX_CHAR_VAL_CURRENT,
 
-    IDX_CHAR_VOLTAGE,
-    IDX_CHAR_VAL_VOLTAGE,
+uint16_t battery_handle_table[HRS_IDX_NB];
 
-    IDX_CHAR_USED_ENERGY,
-    IDX_CHAR_VAL_USED_ENERGY,
+uint16_t battery_notification_table[HRS_IDX_NB];
 
-    IDX_CHAR_TOTAL_ENERGY,
-    IDX_CHAR_VAL_TOTAL_ENERGY,
-
-    HRS_IDX_NB,
-};
-
-uint16_t heart_rate_handle_table[HRS_IDX_NB];
+static uint16_t connection_id;
 
 typedef struct {
     uint8_t                 *prepare_buf;
@@ -105,21 +90,20 @@ struct gatts_profile_inst battery_profile_tab = {
 
 /* Service */
 static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FF;
-
 static const uint16_t GATTS_CHAR_UUID_VOLTAGE       = 0xFF01;
 static const uint16_t GATTS_CHAR_UUID_CURRENT       = 0xFF02;
 static const uint16_t GATTS_CHAR_UUID_USED_ENERGY   = 0xFF03;
 static const uint16_t GATTS_CHAR_UUID_TOTAL_ENERGY  = 0xFF04;
 
-
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
-static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ;
+static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 
+static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
+static const uint8_t config_descriptor[2]      = {0x00, 0x00};
 
 /* Full Database Description - Used to add attributes into the database */
-static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
-{
+static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] = {
     // Service Declaration
     [IDX_SVC]        =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
@@ -127,44 +111,56 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
     /* Characteristic Declaration */
     [IDX_CHAR_VOLTAGE]     =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
     /* Characteristic Value */
     [IDX_CHAR_VAL_VOLTAGE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_VOLTAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.voltage.bytes), (uint8_t *)state.voltage.bytes}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_VOLTAGE]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_CURRENT]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
     /* Characteristic Value */
     [IDX_CHAR_VAL_CURRENT]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_CURRENT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.current.bytes), (uint8_t *)state.current.bytes}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_CURRENT]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_USED_ENERGY]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
     /* Characteristic Value */
     [IDX_CHAR_VAL_USED_ENERGY]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_USED_ENERGY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.used_energy.bytes), (uint8_t *)state.used_energy.bytes}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_USED_ENERGY]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
 
     /* Characteristic Declaration */
     [IDX_CHAR_TOTAL_ENERGY]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
     /* Characteristic Value */
     [IDX_CHAR_VAL_TOTAL_ENERGY]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TOTAL_ENERGY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.total_energy.bytes), (uint8_t *)state.total_energy.bytes}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_TOTAL_ENERGY]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
 };
 
@@ -172,8 +168,7 @@ struct gatts_profile_inst init_battery_service() {
     return battery_profile_tab;
 }
 
-void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
-{
+void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
             esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
@@ -196,15 +191,36 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             if (create_attr_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "create attr table failed, error code = %x", create_attr_ret);
             }
+
+            battery_profile_tab.gatts_if = gatts_if;
+
         }
-       	    break;
+             break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
-       	    break;
+             break;
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT");
-       	    break;
-      	    break;
+            ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
+            esp_log_buffer_hex(GATTS_TABLE_TAG, battery_handle_table, 20);
+                
+            if (!param->write.is_prep) {
+                ESP_LOGI(GATTS_TABLE_TAG, "prepare write not needed %d %d", battery_handle_table[IDX_CHAR_CFG_VOLTAGE], param->write.handle);
+                uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
+
+                uint16_t index = 0;
+
+                for (uint8_t i=0; i<HRS_IDX_NB; i++) {
+                    if (battery_handle_table[i] == param->write.handle) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                battery_notification_table[index] = descr_value;
+                ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
+            }
+            break;
         case ESP_GATTS_EXEC_WRITE_EVT: 
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_EXEC_WRITE_EVT");
             break;
@@ -220,6 +236,9 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
         case ESP_GATTS_CONNECT_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
             esp_log_buffer_hex(GATTS_TABLE_TAG, param->connect.remote_bda, 6);
+
+            connection_id = param->connect.conn_id;
+
             esp_ble_conn_update_params_t conn_params = {0};
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             /* For the iOS system, please refer to Apple official documents about the BLE connection parameters restrictions. */
@@ -244,8 +263,8 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             }
             else {
                 ESP_LOGI(GATTS_TABLE_TAG, "create attribute table successfully, the number handle = %d\n",param->add_attr_tab.num_handle);
-                memcpy(heart_rate_handle_table, param->add_attr_tab.handles, sizeof(heart_rate_handle_table));
-                esp_ble_gatts_start_service(heart_rate_handle_table[IDX_SVC]);
+                memcpy(battery_handle_table, param->add_attr_tab.handles, sizeof(battery_handle_table));
+                esp_ble_gatts_start_service(battery_handle_table[IDX_SVC]);
             }
             break;
         }
@@ -257,6 +276,41 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
         case ESP_GATTS_CONGEST_EVT:
         case ESP_GATTS_UNREG_EVT:
         case ESP_GATTS_DELETE_EVT:
+        default:
+            break;
+    }
+}
+
+void battery_update_value(double value, uint16_t characteristic_index) {
+    ESP_LOGI(GATTS_TABLE_TAG, "battery_update_value %f %d %d", value, characteristic_index, battery_notification_table[characteristic_index]);
+
+    if (battery_notification_table[characteristic_index+1] == 0x0001) {
+        DoubleCharacteristic characteristic;
+        characteristic.value = value;
+
+        esp_ble_gatts_send_indicate(
+            battery_profile_tab.gatts_if,
+            connection_id,
+            battery_handle_table[characteristic_index],
+            sizeof(characteristic.bytes),
+            (uint8_t *)characteristic.bytes,
+            false
+        );
+    }
+
+    switch (characteristic_index) {
+        case IDX_CHAR_VAL_VOLTAGE:
+            state.voltage.value = value;
+            break;
+        case IDX_CHAR_VAL_CURRENT:
+            state.current.value = value;
+            break;
+        case IDX_CHAR_VAL_USED_ENERGY:
+            state.used_energy.value = value;
+            break;
+        case IDX_CHAR_VAL_TOTAL_ENERGY:
+            state.total_energy.value = value;
+            break;
         default:
             break;
     }
