@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
@@ -8,77 +7,86 @@
 #include "esp_adc_cal.h"
 #include "profile_battery.h"
 
-#define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
-#define NO_OF_SAMPLES   64          //Multisampling
+#include "driver/i2c.h"
+#include "ads1115/ads1115.h"
 
-#define CURRENT_SENSOR_SENSIVITY 40
+#define VOLTAGE_DIVIDER (1+12)/1
+#define CURRENT_SENSOR_SENSIVITY 0.026666666667
+#define AMPERE_PER_MS 1/(60*60*1000)
+#define CURRENT_NUM_SAMPLES 4
 
-static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t voltage_channel = ADC_CHANNEL_6;     //GPIO34 if ADC1, GPIO14 if ADC2
-static const adc_channel_t current_channel = ADC_CHANNEL_7;     //GPIO34 if ADC1, GPIO14 if ADC2
-static const adc_atten_t atten = ADC_ATTEN_DB_11;
-static const adc_unit_t unit = ADC_UNIT_1;
+ads1115_t ads;
 
-static void check_efuse()
-{
-    //Check TP is burned into eFuse
-    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
-        printf("eFuse Two Point: Supported\n");
-    } else {
-        printf("eFuse Two Point: NOT supported\n");
-    }
+static esp_err_t i2c_init() {
+    int i2c_master_port = I2C_NUM_0;
+    i2c_config_t conf;
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = GPIO_NUM_23;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num = GPIO_NUM_19;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = 400000;
 
-    //Check Vref is burned into eFuse
-    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK) {
-        printf("eFuse Vref: Supported\n");
-    } else {
-        printf("eFuse Vref: NOT supported\n");
-    }
+    i2c_param_config(i2c_master_port, &conf);
+    return i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
 }
 
-static void print_char_val_type(esp_adc_cal_value_t val_type)
-{
-    if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
-        printf("Characterized using Two Point Value\n");
-    } else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
-        printf("Characterized using eFuse Vref\n");
-    } else {
-        printf("Characterized using Default Vref\n");
+double read_current() {
+    double zero = 1.65; // TODO add calibration
+
+    ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
+    double current = 0;
+    for (uint8_t i=0; i<CURRENT_NUM_SAMPLES; i++) { 
+        current += ads1115_get_voltage(&ads);
     }
+
+    return (current/CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY;
 }
 
-uint32_t readChannel(adc1_channel_t channel){
-    uint32_t adc_reading = 0;
-    for (int i = 0; i < NO_OF_SAMPLES; i++) {
-        adc_reading += adc1_get_raw(channel);
-    }
-    adc_reading /= NO_OF_SAMPLES;
-    return esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+double read_voltage() {
+    ads1115_set_mux(&ads, ADS1115_MUX_0_GND);
+    double voltage = ads1115_get_voltage(&ads);
+    return voltage * VOLTAGE_DIVIDER;
 }
 
-void power_sensor_init()
-{
-    //Check if Two Point or Vref are burned into eFuse
-    check_efuse();
+void read_adc_data() {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    //Configure ADC
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(voltage_channel, atten);
-    adc1_config_channel_atten(current_channel, atten);
+    double mah = 0;
+    double voltage = 0;
+    double current = 0;
 
-    //Characterize ADC
-    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
-    print_char_val_type(val_type);
+    uint16_t measure_interval = 50;
+    uint32_t timer = esp_log_timestamp();
 
-    double val = 5;
+    uint16_t ticks_per_second = 1000 / measure_interval;
+    uint16_t iterator = 0;
 
     while (1) {
-        uint32_t voltage = readChannel(voltage_channel);
-        uint32_t current = readChannel(current_channel) * CURRENT_SENSOR_SENSIVITY;
-        //printf("Voltage: %dmV\tCurrent %dmA\n", voltage, current);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        printf("current %d %f %f %f %d\n", esp_log_timestamp(), mah, current, voltage, esp_log_timestamp() - timer);
+        timer = esp_log_timestamp();
+        current = read_current();
+        mah += current * AMPERE_PER_MS * measure_interval;
+
+        if (iterator == ticks_per_second/2) {
+            iterator = 0;
+            voltage = read_voltage();
+            battery_update_value(current, IDX_CHAR_VAL_CURRENT);
+            battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE);
+            battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY);
+        }
+        iterator++;
+
+        vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
+}
+
+void power_sensor_init() {
+    i2c_init();
+
+    ads = ads1115_config(I2C_NUM_0, 0x48);
+
+    ads1115_set_pga(&ads, ADS1115_FSR_2_048);
+    ads1115_set_sps(&ads, ADS1115_SPS_860);
+    xTaskCreate(read_adc_data, "read_adc_data", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 } 
-
-
