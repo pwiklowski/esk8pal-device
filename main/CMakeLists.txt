@@ -1,1 +1,1 @@
-idf_component_register(SRCS "power.c" "gps.c" "logger.c" "main.c" "location_service.c" "profile_battery.c" "gatt.c" INCLUDE_DIRS ".")
+idf_component_register(SRCS "power.c" "gps.c" "logger.c" "main.c" "location_service.c" "profile_battery.c" "gatt.c" "ads1115/ads1115.c" INCLUDE_DIRS ".")
