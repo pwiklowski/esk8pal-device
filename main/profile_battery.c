@@ -28,9 +28,9 @@ extern struct CurrentState state;
 
 static uint8_t adv_config_done       = 0;
 
-uint16_t battery_handle_table[HRS_IDX_NB];
+uint16_t battery_handle_table[BATTERY_IDX_NB];
 
-uint16_t battery_notification_table[HRS_IDX_NB];
+uint16_t battery_notification_table[BATTERY_IDX_NB];
 
 static uint16_t connection_id;
 
@@ -103,9 +103,9 @@ static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 static const uint8_t config_descriptor[2]      = {0x00, 0x00};
 
 /* Full Database Description - Used to add attributes into the database */
-static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] = {
+static const esp_gatts_attr_db_t gatt_db[BATTERY_IDX_NB] = {
     // Service Declaration
-    [IDX_SVC]        =
+    [IDX_SVC_BATTERY]        =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_TEST), (uint8_t *)&GATTS_SERVICE_UUID_TEST}},
 
@@ -187,18 +187,18 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                 ESP_LOGE(GATTS_TABLE_TAG, "config scan response data failed, error code = %x", ret);
             }
             adv_config_done |= SCAN_RSP_CONFIG_FLAG;
-            esp_err_t create_attr_ret = esp_ble_gatts_create_attr_tab(gatt_db, gatts_if, HRS_IDX_NB, SVC_INST_ID);
+            esp_err_t create_attr_ret = esp_ble_gatts_create_attr_tab(gatt_db, gatts_if, BATTERY_IDX_NB, SVC_INST_ID);
             if (create_attr_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "create attr table failed, error code = %x", create_attr_ret);
             }
 
             battery_profile_tab.gatts_if = gatts_if;
 
-        }
-             break;
+            }
+            break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
-             break;
+            break;
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT");
             ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
@@ -210,7 +210,7 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
 
                 uint16_t index = 0;
 
-                for (uint8_t i=0; i<HRS_IDX_NB; i++) {
+                for (uint8_t i=0; i<BATTERY_IDX_NB; i++) {
                     if (battery_handle_table[i] == param->write.handle) {
                         index = i;
                         break;
@@ -257,14 +257,14 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             if (param->add_attr_tab.status != ESP_GATT_OK){
                 ESP_LOGE(GATTS_TABLE_TAG, "create attribute table failed, error code=0x%x", param->add_attr_tab.status);
             }
-            else if (param->add_attr_tab.num_handle != HRS_IDX_NB){
+            else if (param->add_attr_tab.num_handle != BATTERY_IDX_NB){
                 ESP_LOGE(GATTS_TABLE_TAG, "create attribute table abnormally, num_handle (%d) \
-                        doesn't equal to HRS_IDX_NB(%d)", param->add_attr_tab.num_handle, HRS_IDX_NB);
+                        doesn't equal to HRS_IDX_NB(%d)", param->add_attr_tab.num_handle, BATTERY_IDX_NB);
             }
             else {
                 ESP_LOGI(GATTS_TABLE_TAG, "create attribute table successfully, the number handle = %d\n",param->add_attr_tab.num_handle);
                 memcpy(battery_handle_table, param->add_attr_tab.handles, sizeof(battery_handle_table));
-                esp_ble_gatts_start_service(battery_handle_table[IDX_SVC]);
+                esp_ble_gatts_start_service(battery_handle_table[IDX_SVC_BATTERY]);
             }
             break;
         }

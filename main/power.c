@@ -71,24 +71,13 @@ void power_sensor_init()
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
     print_char_val_type(val_type);
 
-
     double val = 5;
 
     while (1) {
         uint32_t voltage = readChannel(voltage_channel);
         uint32_t current = readChannel(current_channel) * CURRENT_SENSOR_SENSIVITY;
-
         //printf("Voltage: %dmV\tCurrent %dmA\n", voltage, current);
-
         vTaskDelay(pdMS_TO_TICKS(1000));
-
-
-        battery_update_value(10000 + val, IDX_CHAR_VAL_VOLTAGE);
-        battery_update_value(20000 + val, IDX_CHAR_VAL_CURRENT);
-        battery_update_value(30000 + val, IDX_CHAR_VAL_USED_ENERGY);
-        battery_update_value(40000 + val, IDX_CHAR_VAL_TOTAL_ENERGY);
-
-        val = val + 1;
     }
 } 
 
