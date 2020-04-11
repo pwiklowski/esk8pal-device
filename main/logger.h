@@ -3,7 +3,7 @@
 
 #include "state.h"
 
-void createLogger();
-void init_sd();
+void log_init();
+void log_init_sd_card();
 
 #endif

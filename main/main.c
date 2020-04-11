@@ -28,11 +28,12 @@ void app_main(void)
   state.longitude.value = 20.007325;
   state.speed.value = 69.69;
 
-  init_sd();
+  log_init_sd_card();
   ble_init();
 
   init_gps();
   power_sensor_init();
 
-  //createLogger();
+  log_init();
+
 }

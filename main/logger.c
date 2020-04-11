@@ -9,16 +9,17 @@
 #include "state.h"
 
 #define BASE_LOCATION "/sdcard/"
+#define NOT_ACTIVE_TIME_MS 1000*10
+#define LOG_INTERVAL 1000*5
 static const char *TAG = "SD";
 
 extern struct CurrentState state;
 
-void generateLogFilename(char* name) {
-  sprintf(name, "/sdcard/log%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
+void log_generate_filename(char* name) {
+  sprintf(name, "/sdcard/log.%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
 }
 
-void init_sd()
-{
+void log_init_sd_card() {
   ESP_LOGI(TAG, "Initializing SD card");
 
   ESP_LOGI(TAG, "Using SDMMC peripheral");
@@ -59,48 +60,91 @@ void init_sd()
   sdmmc_card_print_info(stdout, card);
 }
 
-void logger(void* params) {
 
-  while (1)
-  {
-    if (state.time == 0) {
-      vTaskDelay(2000 / portTICK_PERIOD_MS);
-      continue;
-    }
-    char log_filename[30];
-    generateLogFilename(log_filename);
-    uint32_t i = 0;
+bool is_in_driving_state() {
+  return state.current.value > 0.5 || state.speed.value > 1.0; // TODO add condition when logs neeed to be collected
+}
 
-    ESP_LOGI(TAG, "Create file %s", log_filename);
-
-    while(1) { // TODO add condition when logs neeed to be collected
-      FILE *f = fopen(log_filename, "a");
-      if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing");
-        return;
-      }
-      fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f\n", 
-        esp_log_timestamp(), 
-        state.time,
-        state.latitude.value,
-        state.longitude.value,
-        state.speed.value,
-        state.voltage.value,
-        state.current.value,
-        state.used_energy.value,
-        state.total_energy.value
-      );
-      fclose(f);
-      ESP_LOGI(TAG, "File written");
-      vTaskDelay(2000 / portTICK_PERIOD_MS);
+void log_wait_for_time_to_be_initiated() {
+  while (1) {
+    if (state.time != 0) {
+      break;
     }
     vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
+}
+
+void log_add_entry(char* name) {
+  FILE *f = fopen(name, "a");
+  if (f == NULL) {
+    ESP_LOGE(TAG, "Failed to open file for writing");
+    log_init_sd_card();
+    return;
+  }
+
+  fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f\n", 
+    esp_log_timestamp(), 
+    state.time,
+    state.latitude.value,
+    state.longitude.value,
+    state.speed.value,
+    state.voltage.value,
+    state.current.value,
+    state.used_energy.value,
+    state.total_energy.value
+  );
+  ESP_LOGI(TAG, "%d, %d, %f, %f, %f, %f, %f, %f, %f", 
+    esp_log_timestamp(), 
+    state.time,
+    state.latitude.value,
+    state.longitude.value,
+    state.speed.value,
+    state.voltage.value,
+    state.current.value,
+    state.used_energy.value,
+    state.total_energy.value
+  );
+
+  fclose(f);
+}
+
+void log_task(void* params) {
+  ESP_LOGI(TAG, "Wait for time value to be initiated");
+  log_wait_for_time_to_be_initiated();
+  ESP_LOGI(TAG, "Time value initiated");
+
+  while (1) {
+    while(!is_in_driving_state()) { 
+      ESP_LOGI(TAG, "Waiting for drive mode to be started");
+      vTaskDelay(2000 / portTICK_PERIOD_MS);
+    }
+
+    char log_filename[40];
+    log_generate_filename(log_filename);
+
+    ESP_LOGI(TAG, "Start log %s", log_filename);
+    uint32_t not_active_start_time = 0;
+    while(1) { 
+      log_add_entry(log_filename);
+
+      if (!is_in_driving_state()) {
+        if (not_active_start_time == 0) {
+          not_active_start_time = esp_log_timestamp();
+          ESP_LOGI(TAG, "detected lack of activity ");
+        } else {
+          if (esp_log_timestamp() - not_active_start_time > NOT_ACTIVE_TIME_MS) {
+            break;
+          }
+        }
+      }
+
+      vTaskDelay(LOG_INTERVAL / portTICK_PERIOD_MS);
+    }
+    ESP_LOGI(TAG, "End log");
   }
   vTaskDelete(NULL);
 }
 
-void createLogger() {
-  TaskHandle_t xHandle = NULL;
-
-  xTaskCreate(logger, "logger_task", 1024 * 4, NULL, configMAX_PRIORITIES, &xHandle);
+void log_init() {
+  xTaskCreate(log_task, "logger_task", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 }
