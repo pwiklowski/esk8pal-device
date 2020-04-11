@@ -228,7 +228,6 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
             break;
         case ESP_GATTS_CONF_EVT:
-            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONF_EVT, status = %d, attr_handle %d", param->conf.status, param->conf.handle);
             break;
         case ESP_GATTS_START_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "SERVICE_START_EVT, status %d, service_handle %d", param->start.status, param->start.service_handle);
@@ -282,8 +281,6 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
 }
 
 void battery_update_value(double value, uint16_t characteristic_index) {
-    ESP_LOGI(GATTS_TABLE_TAG, "battery_update_value %f %d %d", value, characteristic_index, battery_notification_table[characteristic_index]);
-
     if (battery_notification_table[characteristic_index+1] == 0x0001) {
         DoubleCharacteristic characteristic;
         characteristic.value = value;

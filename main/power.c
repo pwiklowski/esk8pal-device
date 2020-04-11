@@ -57,14 +57,11 @@ void read_adc_data() {
     double current = 0;
 
     uint16_t measure_interval = 50;
-    uint32_t timer = esp_log_timestamp();
 
     uint16_t ticks_per_second = 1000 / measure_interval;
     uint16_t iterator = 0;
 
     while (1) {
-        printf("current %d %f %f %f %d\n", esp_log_timestamp(), mah, current, voltage, esp_log_timestamp() - timer);
-        timer = esp_log_timestamp();
         current = read_current();
         mah += current * AMPERE_PER_MS * measure_interval;
 
