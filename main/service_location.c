@@ -30,18 +30,8 @@ extern struct CurrentState state;
 
 static uint8_t adv_config_done       = 0;
 
-
-
 uint16_t location_handle_table[LOCATION_IDX_NB];
 uint16_t location_notification_table[LOCATION_IDX_NB];
-
-typedef struct {
-    uint8_t                 *prepare_buf;
-    int                     prepare_len;
-} prepare_type_env_t;
-
-prepare_type_env_t prepare_write_env;
-
 uint8_t location_service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value

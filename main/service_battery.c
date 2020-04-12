@@ -34,13 +34,6 @@ uint16_t battery_notification_table[BATTERY_IDX_NB];
 
 static uint16_t connection_id;
 
-typedef struct {
-    uint8_t                 *prepare_buf;
-    int                     prepare_len;
-} prepare_type_env_t;
-
-prepare_type_env_t prepare_write_env;
-
 uint8_t battery_service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value
