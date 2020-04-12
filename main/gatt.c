@@ -13,14 +13,18 @@
 #include "gatt.h"
 #include "service_battery.h"
 #include "service_location.h"
+#include "service_settings.h"
 
 #include "sdkconfig.h"
 
 #define GATTS_TAG "GATTS"
 
-#define PROFILE_NUM 2
-#define BATTERY_SERVICE_ID 0
-#define LOCATION_SERVICE_ID 1
+enum {
+ BATTERY_SERVICE_ID,
+ LOCATION_SERVICE_ID,
+ SETTINGS_SERVICE_ID,
+ PROFILE_NUM
+};
 
 struct gatts_profile_inst gl_profile_tab[PROFILE_NUM];
 
@@ -146,7 +150,7 @@ void ble_init()
 
     gl_profile_tab[BATTERY_SERVICE_ID] = init_battery_service();
     gl_profile_tab[LOCATION_SERVICE_ID] = init_location_service();
-
+    gl_profile_tab[SETTINGS_SERVICE_ID] = init_settings_service();
 
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
     if (ret){
@@ -164,6 +168,11 @@ void ble_init()
         return;
     }
     ret = esp_ble_gatts_app_register(LOCATION_SERVICE_ID);
+    if (ret){
+        ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
+        return;
+    }
+    ret = esp_ble_gatts_app_register(SETTINGS_SERVICE_ID);
     if (ret){
         ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
         return;

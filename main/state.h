@@ -23,6 +23,15 @@ struct CurrentState {
   uint8_t month;
   uint16_t year;
   uint32_t time;
+
+  uint8_t riding_state;
+  uint8_t manual_ride_start;
+  uint8_t wifi_ssid[20];
+  uint8_t wifi_pass[20];
+
+  uint8_t wifi_enabled;
+
+  uint32_t free_storage;
 };
 
 #endif
