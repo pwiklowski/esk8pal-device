@@ -111,7 +111,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_RIDING_STATE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_RIDING_STATE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.riding_state), (uint8_t *)&state.riding_state}},
+      sizeof(state.riding_state), sizeof(state.riding_state), (uint8_t *)&state.riding_state}},
     /* Client Characteristic Configuration Descriptor */
     [IDX_CHAR_CFG_RIDING_STATE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -124,7 +124,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_MANUAL_RIDE_START]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_MANUAL_RIDE_START, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.manual_ride_start), (uint8_t *)&state.manual_ride_start}},
+      sizeof(state.manual_ride_start), sizeof(state.manual_ride_start), (uint8_t *)&state.manual_ride_start}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_SSID]      =
@@ -133,7 +133,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_SSID]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_SSID, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.wifi_ssid), (uint8_t *)state.wifi_ssid}},
+      sizeof(state.wifi_ssid), sizeof(state.wifi_ssid), (uint8_t *)state.wifi_ssid}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_PASS]      =
@@ -142,7 +142,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_PASS]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.wifi_pass), (uint8_t *)state.wifi_pass}},
+      sizeof(state.wifi_pass), sizeof(state.wifi_pass), (uint8_t *)state.wifi_pass}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_ENABLED]      =
@@ -151,7 +151,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_ENABLED]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_ENABLED, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.wifi_enabled), (uint8_t *)&state.wifi_enabled}},
+      sizeof(state.wifi_enabled), sizeof(state.wifi_enabled), (uint8_t *)&state.wifi_enabled}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_FREE_STORAGE]      =
@@ -160,7 +160,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_FREE_STORAGE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FREE_STORAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.free_storage), (uint8_t *)&state.free_storage}},
+      sizeof(state.free_storage), sizeof(state.free_storage), (uint8_t *)&state.free_storage}},
     /* Client Characteristic Configuration Descriptor */
     [IDX_CHAR_CFG_FREE_STORAGE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
