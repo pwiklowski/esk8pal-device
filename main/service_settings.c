@@ -224,7 +224,7 @@ void settings_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT");
                 
-            if (!param->write.is_prep) {
+            if (param->write.handle == IDX_CHAR_CFG_RIDING_STATE || param->write.handle == IDX_CHAR_CFG_FREE_STORAGE) {
                 uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
                 uint16_t index = 0;
 
