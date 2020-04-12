@@ -172,6 +172,20 @@ struct gatts_profile_inst init_settings_service() {
     return settings_profile_tab;
 }
 
+void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
+    if (handle == settings_handle_table[IDX_CHAR_VAL_RIDING_STATE]) {
+        state.riding_state = value[0];
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_MANUAL_RIDE_START]) {
+        state.manual_ride_start = value[0];
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_ENABLED]) {
+        state.wifi_enabled = value[0];
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID]) {
+        memcpy(value, state.wifi_ssid, len);
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_PASS]) {
+        memcpy(value, state.wifi_pass, len);
+    }
+}
+
 void settings_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
@@ -220,6 +234,8 @@ void settings_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
                 settings_notification_table[index] = descr_value;
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
             }
+
+            settings_set_state(param->write.handle, param->write.value, param->write.len);
             break;
         case ESP_GATTS_EXEC_WRITE_EVT: 
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_EXEC_WRITE_EVT");
