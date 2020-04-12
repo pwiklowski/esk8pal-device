@@ -1,5 +1,5 @@
-#ifndef profile_battery_h
-#define profile_battery_h
+#ifndef service_battery_h
+#define service_battery_h
 
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"

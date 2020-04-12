@@ -1,5 +1,5 @@
-#ifndef location_service_h
-#define location_service_h
+#ifndef service_location_h
+#define service_location_h
 
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"

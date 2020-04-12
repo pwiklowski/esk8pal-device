@@ -11,8 +11,8 @@
 #include "esp_bt.h"
 
 #include "gatt.h"
-#include "profile_battery.h"
-#include "location_service.h"
+#include "service_battery.h"
+#include "service_location.h"
 
 #include "sdkconfig.h"
 

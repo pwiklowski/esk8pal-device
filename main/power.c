@@ -5,7 +5,7 @@
 #include "driver/gpio.h"
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
-#include "profile_battery.h"
+#include "service_battery.h"
 
 #include "driver/i2c.h"
 #include "ads1115/ads1115.h"
