@@ -11,6 +11,7 @@
 #include "gps.h"
 #include "state.h"
 #include "power.h"
+#include "settings.h"
 
 #include "service_location.h"
 #include "service_battery.h"
@@ -34,6 +35,8 @@ bool is_in_driving_state() {
 void app_main(void) {
   state.riding_state = STATE_PARKED;
   state.manual_ride_start = MANUAL_START_DISABLED;
+
+  settings_init();
 
   log_init_sd_card();
   ble_init();

@@ -7,7 +7,6 @@
 #include "freertos/event_groups.h"
 #include "esp_system.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
 #include "esp_bt.h"
 
 #include "gatt.h"
@@ -111,17 +110,8 @@ void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp
     } while (0);
 }
 
-void ble_init()
-{
+void ble_init() {
     esp_err_t ret;
-
-    // Initialize NVS.
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK( ret );
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
