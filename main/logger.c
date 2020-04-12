@@ -18,6 +18,7 @@ static const char *TAG = "SD";
 extern struct CurrentState state;
 
 extern bool is_in_driving_state();
+extern void set_device_state(device_state_t state);
 
 void log_generate_filename(char* name) {
   sprintf(name, "/sdcard/log.%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
@@ -114,7 +115,6 @@ void log_task(void* params) {
 
   while (1) {
     while(!is_in_driving_state()) { 
-      ESP_LOGI(TAG, "Waiting for drive mode to be started");
       vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
 
@@ -123,6 +123,7 @@ void log_task(void* params) {
 
     ESP_LOGI(TAG, "Start log %s", log_filename);
     uint32_t not_active_start_time = 0;
+    set_device_state(STATE_RIDING);
     while(1) { 
       log_add_entry(log_filename);
 
@@ -139,6 +140,7 @@ void log_task(void* params) {
 
       vTaskDelay(LOG_INTERVAL / portTICK_PERIOD_MS);
     }
+    set_device_state(STATE_PARKED);
     ESP_LOGI(TAG, "End log");
   }
   vTaskDelete(NULL);

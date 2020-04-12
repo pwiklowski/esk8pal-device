@@ -300,15 +300,16 @@ void settings_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
     }
 }
 
-void settings_update_value(void* value, uint16_t characteristic_index) {
-    if (settings_notification_table[characteristic_index+1] == 0x0001) {
+void settings_set_value(uint16_t handle_idx, uint16_t len, const uint8_t* value) {
+    esp_ble_gatts_set_attr_value(settings_handle_table[handle_idx], len, value);
 
+    if (settings_notification_table[handle_idx+1] == 0x0001) {
         esp_ble_gatts_send_indicate(
             settings_profile_tab.gatts_if,
             connection_id,
-            settings_handle_table[characteristic_index],
-            sizeof(value),
-            (uint8_t *)value,
+            settings_handle_table[handle_idx],
+            len,
+            value,
             false
         );
     }

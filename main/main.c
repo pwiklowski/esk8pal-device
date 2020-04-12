@@ -32,6 +32,11 @@ bool is_in_driving_state() {
   }
 }
 
+void set_device_state(device_state_t new_state) {
+  state.riding_state = new_state;
+  settings_set_value(IDX_CHAR_VAL_RIDING_STATE, 1, &new_state);
+}
+
 void app_main(void) {
   state.riding_state = STATE_PARKED;
   state.manual_ride_start = MANUAL_START_DISABLED;

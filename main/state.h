@@ -10,7 +10,7 @@ typedef union {
 typedef enum {
   STATE_PARKED,
   STATE_RIDING
-} riding_state_t;
+} device_state_t;
 
 typedef enum {
   MANUAL_START_DISABLED,
