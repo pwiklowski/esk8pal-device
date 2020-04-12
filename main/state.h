@@ -7,7 +7,15 @@ typedef union {
   char bytes[sizeof(double)];
 } DoubleCharacteristic;
 
+typedef enum {
+  STATE_PARKED,
+  STATE_RIDING
+} riding_state_t;
 
+typedef enum {
+  MANUAL_START_DISABLED,
+  MANUAL_START_ENABLED
+} manual_start_t;
 
 struct CurrentState {
   DoubleCharacteristic current;

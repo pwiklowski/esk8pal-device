@@ -8,12 +8,16 @@
 #include "sdmmc_cmd.h"
 #include "state.h"
 
+#include "service_settings.h"
+
 #define BASE_LOCATION "/sdcard/"
 #define NOT_ACTIVE_TIME_MS 1000*10
 #define LOG_INTERVAL 1000*5
 static const char *TAG = "SD";
 
 extern struct CurrentState state;
+
+extern bool is_in_driving_state();
 
 void log_generate_filename(char* name) {
   sprintf(name, "/sdcard/log.%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
@@ -58,11 +62,6 @@ void log_init_sd_card() {
   }
 
   sdmmc_card_print_info(stdout, card);
-}
-
-
-bool is_in_driving_state() {
-  return state.current.value > 0.5 || state.speed.value > 1.0; // TODO add condition when logs neeed to be collected
 }
 
 void log_wait_for_time_to_be_initiated() {

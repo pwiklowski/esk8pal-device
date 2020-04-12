@@ -12,28 +12,35 @@
 #include "state.h"
 #include "power.h"
 
-static const char *TAG = "esk8";
+#include "service_location.h"
+#include "service_battery.h"
+#include "service_settings.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+static const char *TAG = "esk8";
 
 struct CurrentState state;
 
-void app_main(void)
-{
-  state.voltage.value = 1.0;
-  state.current.value = 2.0;
-  state.used_energy.value = 3.0;
-  state.total_energy.value = 4.0;
+bool is_in_driving_state() {
+  if (state.manual_ride_start == MANUAL_START_ENABLED) {
+    return state.riding_state == STATE_RIDING;
+  } else {
+    return state.current.value > 0.5 || state.speed.value > 1.0; // TODO add condition when logs neeed to be collected
+  }
+}
 
-  state.latitude.value = 50.081624;
-  state.longitude.value = 20.007325;
-  state.speed.value = 69.69;
+void app_main(void) {
+  state.riding_state = STATE_PARKED;
+  state.manual_ride_start = MANUAL_START_DISABLED;
 
   log_init_sd_card();
   ble_init();
 
   init_gps();
+
   power_sensor_init();
 
   log_init();
-
 }
