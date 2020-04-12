@@ -17,7 +17,7 @@ static const char *RX_TASK_TAG = "RX_TASK";
 extern struct CurrentState state;
 
 
-void init() {
+void gps_init_uart() {
     const uart_config_t uart_config = {
         .baud_rate = 9600,
         .data_bits = UART_DATA_8_BITS,
@@ -32,12 +32,11 @@ void init() {
 }
 
 
-void get_time_date(uint8_t* data) {
+void gps_get_time_date(uint8_t* data) {
     if (data == NULL) {
         return;
     }
 
-    //$GNZDA,142713.000,04,04,2020,00,00*4A
     char substr[10];
 
     char* start = strchr((char*)data, ',') + 1;
@@ -61,14 +60,14 @@ void get_time_date(uint8_t* data) {
     state.year = atoi(substr);
 }
 
-bool is_location_valid(uint8_t* data) {
+bool gps_is_location_valid(uint8_t* data) {
     char* end_line_index = strchr((char*) data, 0x0D);
     char* is_data_correct_marker = strstr((char*) data, ",A,");
     return is_data_correct_marker != NULL && is_data_correct_marker < end_line_index;
 }
 
 
-void get_location(uint8_t* data) {
+void gps_get_location(uint8_t* data) {
     if (data == NULL) {
         return;
     }
@@ -78,7 +77,7 @@ void get_location(uint8_t* data) {
     double lon = 0;
     char lat_ind, lon_ind;
 
-    if (is_location_valid(data)) {
+    if (gps_is_location_valid(data)) {
         char* start = strchr((char*)data, ',') + 1;
         strncpy(substr, start, 2);
         substr[2] = 0;
@@ -120,7 +119,7 @@ void get_location(uint8_t* data) {
     state.longitude.value = lon;
 }
 
-void get_speed(uint8_t* data) {
+void gps_get_speed(uint8_t* data) {
     if (data == NULL) {
         return;
     }
@@ -138,27 +137,27 @@ void get_speed(uint8_t* data) {
     }
 }
 
-void handleNmeaData(uint8_t* data, uint16_t len){
-    get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
-    get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
-    get_speed((uint8_t*)strstr((char*)data, "$GNVTG"));
+void gps_handle_nmea_data(uint8_t* data, uint16_t len){
+    gps_get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
+    gps_get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
+    gps_get_speed((uint8_t*)strstr((char*)data, "$GNVTG"));
 }
 
-void rx_task() {
+void gps_rx_task() {
     esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
     uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
     while (1) {
         const int rxBytes = uart_read_bytes(UART_NUM_2, data, RX_BUF_SIZE, 500 / portTICK_RATE_MS);
         if (rxBytes > 0) {
             data[rxBytes] = 0;
-            handleNmeaData(data, rxBytes);
+            //ESP_LOGI("As", "%s", data);
+            gps_handle_nmea_data(data, rxBytes);
         }
     }
     free(data);
 }
 
-
 void init_gps() {
-    init();
-    xTaskCreate(rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
+    gps_init_uart();
+    xTaskCreate(gps_rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
 }
