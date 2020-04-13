@@ -40,6 +40,7 @@ struct CurrentState {
   uint8_t wifi_enabled;
 
   uint32_t free_storage;
+  uint32_t total_storage;
 };
 
 #endif

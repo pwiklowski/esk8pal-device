@@ -89,11 +89,15 @@ static const uint16_t GATTS_CHAR_UUID_WIFI_SSID     = 0xFD03;
 static const uint16_t GATTS_CHAR_UUID_WIFI_PASS     = 0xFD04;
 static const uint16_t GATTS_CHAR_UUID_WIFI_ENABLED  = 0xFD05;
 static const uint16_t GATTS_CHAR_UUID_FREE_STORAGE  = 0xFD06;
+static const uint16_t GATTS_CHAR_UUID_TOTAL_STORAGE  = 0xFD07; 
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint8_t char_prop_read_write          =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const uint8_t char_prop_read_write_notify   =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY | ESP_GATT_CHAR_PROP_BIT_WRITE;
+
+static const uint8_t char_prop_read          =  ESP_GATT_CHAR_PROP_BIT_READ;
+static const uint8_t char_prop_read_notify   =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
 static const uint8_t config_descriptor[2]      = {0x00, 0x00};
@@ -157,7 +161,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Declaration */
     [IDX_CHAR_FREE_STORAGE]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write_notify}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_notify}},
     /* Characteristic Value */
     [IDX_CHAR_VAL_FREE_STORAGE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FREE_STORAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -167,6 +171,14 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
+    /* Characteristic Declaration */
+    [IDX_CHAR_TOTAL_STORAGE]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_TOTAL_STORAGE]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TOTAL_STORAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(state.total_storage), sizeof(state.total_storage), (uint8_t *)&state.total_storage}},
 };
 
 struct gatts_profile_inst init_settings_service() {
