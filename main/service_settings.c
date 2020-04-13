@@ -195,9 +195,11 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         state.wifi_enabled = value[0];
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID]) {
         memcpy(state.wifi_ssid, value, len);
+        state.wifi_ssid[len] = 0;
         settings_save();
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_PASS]) {
         memcpy(state.wifi_pass, value, len);
+        state.wifi_pass[len] = 0;
         settings_save();
     }
 }
