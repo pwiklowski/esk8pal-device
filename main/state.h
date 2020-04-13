@@ -34,8 +34,8 @@ struct CurrentState {
 
   uint8_t riding_state;
   uint8_t manual_ride_start;
-  uint8_t wifi_ssid[20];
-  uint8_t wifi_pass[20];
+  uint8_t wifi_ssid[21];
+  uint8_t wifi_pass[21];
 
   uint8_t wifi_enabled;
 
