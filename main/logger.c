@@ -65,6 +65,30 @@ void log_init_sd_card() {
   sdmmc_card_print_info(stdout, card);
 }
 
+void log_update_free_space() {
+  FATFS *fs;
+	DWORD fre_clust, fre_sect, tot_sect;
+
+	FRESULT res = f_getfree("/sdcard/", &fre_clust, &fs);
+	if (res) {
+		return;
+	}
+	
+  tot_sect = (fs->n_fatent - 2) * fs->csize;
+	fre_sect = fre_clust * fs->csize;
+	
+	uint64_t tmp_total_bytes = (uint64_t)tot_sect * FF_SS_SDCARD;
+	uint64_t tmp_free_bytes = (uint64_t)fre_sect * FF_SS_SDCARD;
+
+  state.free_storage = tmp_free_bytes / (1024*1024);
+  state.total_storage =  tmp_total_bytes / (1024*1024);
+
+  settings_set_value(IDX_CHAR_VAL_FREE_STORAGE, 4, (uint8_t*) &state.free_storage);
+  settings_set_value(IDX_CHAR_VAL_TOTAL_STORAGE, 4, (uint8_t*) &state.total_storage);
+
+	ESP_LOGI(TAG, "Free space %d/%d", state.free_storage, state.total_storage);
+}
+
 void log_wait_for_time_to_be_initiated() {
   while (1) {
     if (state.time != 0) {
@@ -111,6 +135,7 @@ void log_add_entry(char* name) {
 void log_task(void* params) {
   ESP_LOGI(TAG, "Wait for time value to be initiated");
   log_wait_for_time_to_be_initiated();
+  log_update_free_space();
   ESP_LOGI(TAG, "Time value initiated");
 
   while (1) {
@@ -124,6 +149,7 @@ void log_task(void* params) {
     ESP_LOGI(TAG, "Start log %s", log_filename);
     uint32_t not_active_start_time = 0;
     set_device_state(STATE_RIDING);
+    log_update_free_space();
     while(1) { 
       log_add_entry(log_filename);
 
@@ -141,6 +167,7 @@ void log_task(void* params) {
       vTaskDelay(LOG_INTERVAL / portTICK_PERIOD_MS);
     }
     set_device_state(STATE_PARKED);
+    log_update_free_space();
     ESP_LOGI(TAG, "End log");
   }
   vTaskDelete(NULL);
