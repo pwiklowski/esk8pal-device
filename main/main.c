@@ -12,6 +12,7 @@
 #include "state.h"
 #include "power.h"
 #include "settings.h"
+#include "wifi.h"
 
 #include "service_location.h"
 #include "service_battery.h"
@@ -51,4 +52,6 @@ void app_main(void) {
   power_sensor_init();
 
   log_init();
+
+  wifi_init();
 }

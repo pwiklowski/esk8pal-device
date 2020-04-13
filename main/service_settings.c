@@ -14,6 +14,8 @@
 #include "service_settings.h"
 #include "state.h"
 #include "settings.h"
+#include "wifi.h"
+
 
 #define GATTS_TABLE_TAG "SettingsService"
 
@@ -196,6 +198,9 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_MANUAL_RIDE_START %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_ENABLED]) {
         state.wifi_enabled = value[0];
+
+        wifi_set_state(state.wifi_enabled);
+
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_ENABLED %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID]) {
         memcpy(state.wifi_ssid, value, len);
