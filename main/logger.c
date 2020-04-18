@@ -9,6 +9,9 @@
 #include "state.h"
 
 #include "service_settings.h"
+#include "math.h"
+
+#define d2r (M_PI / 180.0)
 
 #define BASE_LOCATION "/sdcard/"
 #define NOT_ACTIVE_TIME_MS 1000*10
@@ -106,7 +109,7 @@ void log_add_entry(char* name) {
     return;
   }
 
-  fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f\n", 
+  fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", 
     esp_log_timestamp(), 
     state.time,
     state.latitude.value,
@@ -115,9 +118,10 @@ void log_add_entry(char* name) {
     state.voltage.value,
     state.current.value,
     state.used_energy.value,
-    state.total_energy.value
+    state.total_energy.value,
+    state.distance.value
   );
-  ESP_LOGI(TAG, "%d, %d, %f, %f, %f, %f, %f, %f, %f", 
+  ESP_LOGI(TAG, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f", 
     esp_log_timestamp(), 
     state.time,
     state.latitude.value,
@@ -126,10 +130,55 @@ void log_add_entry(char* name) {
     state.voltage.value,
     state.current.value,
     state.used_energy.value,
-    state.total_energy.value
+    state.total_energy.value,
+    state.distance.value
   );
 
   fclose(f);
+}
+
+double haversine_km(double lat1, double long1, double lat2, double long2) {
+    double dlong = (long2 - long1) * d2r;
+    double dlat = (lat2 - lat1) * d2r;
+    double a = pow(sin(dlat/2.0), 2) + cos(lat1*d2r) * cos(lat2*d2r) * pow(sin(dlong/2.0), 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1-a));
+    double d = 6367 * c;
+
+    return d;
+}
+
+double haversine_mi(double lat1, double long1, double lat2, double long2) {
+    double dlong = (long2 - long1) * d2r;
+    double dlat = (lat2 - lat1) * d2r;
+    double a = pow(sin(dlat/2.0), 2) + cos(lat1*d2r) * cos(lat2*d2r) * pow(sin(dlong/2.0), 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1-a));
+    double d = 3956 * c; 
+
+    return d;
+}
+
+void log_track_task() {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    uint16_t measure_interval = 3000; //TODO add changing it based on current speed ?
+
+    double pLatitude = state.latitude.value;
+    double pLongtitude = state.longitude.value;
+
+    vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
+
+    double chunk;
+
+    while (1) {
+        chunk = haversine_km(pLatitude, pLongtitude, state.latitude.value, state.longitude.value);
+
+        pLatitude = state.latitude.value;
+        pLongtitude = state.longitude.value;
+
+        state.distance.value = state.distance.value + chunk;
+        
+        ESP_LOGI("Distance", "chunk %f %f",chunk, state.distance.value);
+        vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
+    }
 }
 
 void log_task(void* params) {
@@ -138,9 +187,11 @@ void log_task(void* params) {
   log_update_free_space();
   ESP_LOGI(TAG, "Time value initiated");
 
+  TaskHandle_t trackTaskHandle;
+
   while (1) {
     while(!is_in_driving_state()) { 
-      vTaskDelay(2000 / portTICK_PERIOD_MS);
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
     char log_filename[40];
@@ -150,11 +201,14 @@ void log_task(void* params) {
     uint32_t not_active_start_time = 0;
     set_device_state(STATE_RIDING);
     log_update_free_space();
+
+    xTaskCreate(log_track_task, "log_track_task", 1024*2, NULL, configMAX_PRIORITIES-1, &trackTaskHandle);
+
     while(1) { 
       log_add_entry(log_filename);
 
       if (!is_in_driving_state()) {
-        if (not_active_start_time == 0) {
+        if (not_active_start_time == 0 && !state.manual_ride_start ) {
           not_active_start_time = esp_log_timestamp();
           ESP_LOGI(TAG, "detected lack of activity ");
         } else {
@@ -168,6 +222,9 @@ void log_task(void* params) {
     }
     set_device_state(STATE_PARKED);
     log_update_free_space();
+
+    vTaskDelete(trackTaskHandle); 
+
     ESP_LOGI(TAG, "End log");
   }
   vTaskDelete(NULL);
