@@ -27,7 +27,7 @@ struct CurrentState {
   DoubleCharacteristic latitude;
   DoubleCharacteristic longitude;
 
-  DoubleCharacteristic distance;
+  DoubleCharacteristic trip_distance;
 
   uint8_t day;
   uint8_t month;

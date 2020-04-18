@@ -87,6 +87,7 @@ static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FE;
 static const uint16_t GATTS_CHAR_UUID_LATITUDE     = 0xFE01;
 static const uint16_t GATTS_CHAR_UUID_LONGITUDE    = 0xFE02;
 static const uint16_t GATTS_CHAR_UUID_SPEED        = 0xFE03;
+static const uint16_t GATTS_CHAR_UUID_TRIP_DISTANCE        = 0xFE04;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -96,15 +97,14 @@ static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 static const uint8_t config_descriptor[2]      = {0x00, 0x00};
 
 /* Full Database Description - Used to add attributes into the database */
-static const esp_gatts_attr_db_t gatt_db[LOCATION_IDX_NB] =
-{
+static const esp_gatts_attr_db_t gatt_db[LOCATION_IDX_NB] = {
     // Service Declaration
-    [IDX_SVC_LOCATION]        =
+    [IDX_SVC_LOCATION] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_TEST), (uint8_t *)&GATTS_SERVICE_UUID_TEST}},
 
     /* Characteristic Declaration */
-    [IDX_CHAR_LATITUDE]     =
+    [IDX_CHAR_LATITUDE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
     /* Characteristic Value */
@@ -112,16 +112,16 @@ static const esp_gatts_attr_db_t gatt_db[LOCATION_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_LATITUDE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.latitude.bytes), (uint8_t *)state.latitude.bytes}},
     /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_LATITUDE]  =
+    [IDX_CHAR_CFG_LATITUDE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
     /* Characteristic Declaration */
-    [IDX_CHAR_LONGITUDE]      =
+    [IDX_CHAR_LONGITUDE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
     /* Characteristic Value */
-    [IDX_CHAR_VAL_LONGITUDE]  =
+    [IDX_CHAR_VAL_LONGITUDE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_LONGITUDE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.longitude.bytes), (uint8_t *)state.longitude.bytes}},
     /* Client Characteristic Configuration Descriptor */
@@ -130,15 +130,27 @@ static const esp_gatts_attr_db_t gatt_db[LOCATION_IDX_NB] =
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
     /* Characteristic Declaration */
-    [IDX_CHAR_SPEED]      =
+    [IDX_CHAR_SPEED] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
     /* Characteristic Value */
-    [IDX_CHAR_VAL_SPEED]  =
+    [IDX_CHAR_VAL_SPEED] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_SPEED, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.speed.bytes), (uint8_t *)state.speed.bytes}},
     /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_SPEED]  =
+    [IDX_CHAR_CFG_SPEED] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
+
+    [IDX_CHAR_TRIP_DISTANCE] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_TRIP_DISTANCE] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TRIP_DISTANCE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.trip_distance.bytes), (uint8_t *)state.trip_distance.bytes}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_TRIP_DISTANCE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 };
@@ -276,6 +288,9 @@ void location_update_value(double value, uint16_t characteristic_index) {
             break;
         case IDX_CHAR_VAL_SPEED:
             state.speed.value = value;
+            break;
+        case IDX_CHAR_VAL_TRIP_DISTANCE:
+            state.trip_distance.value = value;
             break;
         default:
             break;

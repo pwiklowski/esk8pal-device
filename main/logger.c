@@ -9,6 +9,7 @@
 #include "state.h"
 
 #include "service_settings.h"
+#include "service_location.h"
 #include "math.h"
 
 #define d2r (M_PI / 180.0)
@@ -119,7 +120,7 @@ void log_add_entry(char* name) {
     state.current.value,
     state.used_energy.value,
     state.total_energy.value,
-    state.distance.value
+    state.trip_distance.value
   );
   ESP_LOGI(TAG, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f", 
     esp_log_timestamp(), 
@@ -131,7 +132,7 @@ void log_add_entry(char* name) {
     state.current.value,
     state.used_energy.value,
     state.total_energy.value,
-    state.distance.value
+    state.trip_distance.value
   );
 
   fclose(f);
@@ -174,9 +175,9 @@ void log_track_task() {
         pLatitude = state.latitude.value;
         pLongtitude = state.longitude.value;
 
-        state.distance.value = state.distance.value + chunk;
+        location_update_value(state.trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE);
         
-        ESP_LOGI("Distance", "chunk %f %f",chunk, state.distance.value);
+        ESP_LOGI("Distance", "chunk %f %f",chunk, state.trip_distance.value);
         vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
 }
