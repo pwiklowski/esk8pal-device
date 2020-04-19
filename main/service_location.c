@@ -234,17 +234,17 @@ void location_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
 
                 if (index == IDX_CHAR_CFG_TRIP_DISTANCE) {
-                    location_update_value(state.trip_distance.value, IDX_CHAR_VAL_TRIP_DISTANCE);
+                    location_update_value(state.trip_distance.value, IDX_CHAR_VAL_TRIP_DISTANCE, true);
                 } else if (index == IDX_CHAR_CFG_SPEED) {
-                    location_update_value(state.speed.value, IDX_CHAR_VAL_SPEED);
+                    location_update_value(state.speed.value, IDX_CHAR_VAL_SPEED, true);
                 } else if (index == IDX_CHAR_CFG_LATITUDE) {
-                    location_update_value(state.latitude.value, IDX_CHAR_VAL_LATITUDE);
+                    location_update_value(state.latitude.value, IDX_CHAR_VAL_LATITUDE, true);
                 } else if (index == IDX_CHAR_CFG_LONGITUDE) {
-                    location_update_value(state.longitude.value, IDX_CHAR_VAL_LONGITUDE);
+                    location_update_value(state.longitude.value, IDX_CHAR_VAL_LONGITUDE, true);
                 } else if (index == IDX_CHAR_CFG_GPS_FIX) {
-                    location_update_u8_value(state.gps_fix_status, IDX_CHAR_VAL_GPS_FIX);
+                    location_update_u8_value(state.gps_fix_status, IDX_CHAR_VAL_GPS_FIX, true);
                 } else if (index == IDX_CHAR_CFG_GPS_SATELITE_COUNT) {
-                    location_update_u8_value(state.gps_satelites_count, IDX_CHAR_VAL_GPS_SATELITE_COUNT);
+                    location_update_u8_value(state.gps_satelites_count, IDX_CHAR_VAL_GPS_SATELITE_COUNT, true);
                 }
             }
             break;
@@ -305,8 +305,24 @@ void location_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
     }
 }
 
-void location_update_u8_value(uint8_t value, uint16_t characteristic_index) {
-    if (location_notification_table[characteristic_index+1] == 0x0001) {
+void location_update_u8_value(uint8_t value, uint16_t characteristic_index, bool force_notify) {
+    bool was_changed = false;
+    switch (characteristic_index) {
+        case IDX_CHAR_VAL_GPS_FIX:
+            if (state.gps_fix_status != value) {
+                state.gps_fix_status = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_GPS_SATELITE_COUNT:
+            if (state.gps_satelites_count != value) {
+                state.gps_satelites_count= value;
+                was_changed = true;
+            }
+            break;
+    }
+
+    if (location_notification_table[characteristic_index+1] == 0x0001 && (was_changed || force_notify)) {
         ESP_LOGI(GATTS_TABLE_TAG, "location_update_value %d = %d", characteristic_index, value);
 
         esp_ble_gatts_send_indicate(
@@ -318,21 +334,44 @@ void location_update_u8_value(uint8_t value, uint16_t characteristic_index) {
             false
         );
     }
-
-    switch (characteristic_index) {
-        case IDX_CHAR_VAL_GPS_FIX:
-            state.gps_fix_status = value;
-            break;
-        case IDX_CHAR_VAL_GPS_SATELITE_COUNT:
-            state.gps_satelites_count= value;
-            break;
-    }
 }
 
-void location_update_value(double value, uint16_t characteristic_index) {
-    if (location_notification_table[characteristic_index+1] == 0x0001) {
+void location_update_value(double value, uint16_t characteristic_index, bool force_notify) {
+    bool was_changed = false;
+    switch (characteristic_index) {
+        case IDX_CHAR_VAL_LATITUDE:
+            if (state.latitude.value != value) {
+                state.latitude.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_LONGITUDE:
+            if (state.longitude.value != value) {
+                state.longitude.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_SPEED:
+            if (state.speed.value != value) {
+                state.speed.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_TRIP_DISTANCE:
+            if (state.trip_distance.value != value) {
+                state.trip_distance.value = value;
+                was_changed = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    if (location_notification_table[characteristic_index+1] == 0x0001 && (was_changed || force_notify)) {
         DoubleCharacteristic characteristic;
         characteristic.value = value;
+
+        ESP_LOGI(GATTS_TABLE_TAG, "location_update_value %d = %f", characteristic_index, value);
 
         esp_ble_gatts_send_indicate(
             location_profile_tab.gatts_if,
@@ -344,20 +383,4 @@ void location_update_value(double value, uint16_t characteristic_index) {
         );
     }
 
-    switch (characteristic_index) {
-        case IDX_CHAR_VAL_LATITUDE:
-            state.latitude.value = value;
-            break;
-        case IDX_CHAR_VAL_LONGITUDE:
-            state.longitude.value = value;
-            break;
-        case IDX_CHAR_VAL_SPEED:
-            state.speed.value = value;
-            break;
-        case IDX_CHAR_VAL_TRIP_DISTANCE:
-            state.trip_distance.value = value;
-            break;
-        default:
-            break;
-    }
 }

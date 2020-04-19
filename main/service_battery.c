@@ -214,13 +214,13 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
 
                 if (index == IDX_CHAR_CFG_VOLTAGE) {
-                    battery_update_value(state.voltage.value, IDX_CHAR_VAL_VOLTAGE);
+                    battery_update_value(state.voltage.value, IDX_CHAR_VAL_VOLTAGE, true);
                 } else if (index == IDX_CHAR_CFG_CURRENT) {
-                    battery_update_value(state.current.value, IDX_CHAR_VAL_CURRENT);
+                    battery_update_value(state.current.value, IDX_CHAR_VAL_CURRENT, true);
                 } else if (index == IDX_CHAR_CFG_USED_ENERGY) {
-                    battery_update_value(state.used_energy.value, IDX_CHAR_VAL_USED_ENERGY);
+                    battery_update_value(state.used_energy.value, IDX_CHAR_VAL_USED_ENERGY, true);
                 } else if (index == IDX_CHAR_CFG_TOTAL_ENERGY) {
-                    battery_update_value(state.total_energy.value, IDX_CHAR_VAL_TOTAL_ENERGY);
+                    battery_update_value(state.total_energy.value, IDX_CHAR_VAL_TOTAL_ENERGY, true);
                 }
             }
             break;
@@ -283,8 +283,39 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
     }
 }
 
-void battery_update_value(double value, uint16_t characteristic_index) {
-    if (battery_notification_table[characteristic_index+1] == 0x0001) {
+void battery_update_value(double value, uint16_t characteristic_index, bool force_notify) {
+    bool was_changed = false;
+
+    switch (characteristic_index) {
+        case IDX_CHAR_VAL_VOLTAGE:
+            if (state.voltage.value != value){
+                state.voltage.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_CURRENT:
+            if (state.current.value != value){
+                state.current.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_USED_ENERGY:
+            if (state.used_energy.value != value) {
+                state.used_energy.value = value;
+                was_changed = true;
+            }
+            break;
+        case IDX_CHAR_VAL_TOTAL_ENERGY:
+            if (state.used_energy.value != value) {
+                state.total_energy.value = value;
+                was_changed = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    if (battery_notification_table[characteristic_index+1] == 0x0001 && (was_changed || force_notify)) {
         DoubleCharacteristic characteristic;
         characteristic.value = value;
 
@@ -296,22 +327,5 @@ void battery_update_value(double value, uint16_t characteristic_index) {
             (uint8_t *)characteristic.bytes,
             false
         );
-    }
-
-    switch (characteristic_index) {
-        case IDX_CHAR_VAL_VOLTAGE:
-            state.voltage.value = value;
-            break;
-        case IDX_CHAR_VAL_CURRENT:
-            state.current.value = value;
-            break;
-        case IDX_CHAR_VAL_USED_ENERGY:
-            state.used_energy.value = value;
-            break;
-        case IDX_CHAR_VAL_TOTAL_ENERGY:
-            state.total_energy.value = value;
-            break;
-        default:
-            break;
     }
 }

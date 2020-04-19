@@ -175,7 +175,7 @@ void log_track_task() {
         pLatitude = state.latitude.value;
         pLongtitude = state.longitude.value;
 
-        location_update_value(state.trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE);
+        location_update_value(state.trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE, false);
         
         ESP_LOGI("Distance", "chunk %f %f",chunk, state.trip_distance.value);
         vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);

@@ -114,8 +114,8 @@ void gps_get_location(uint8_t* data) {
         if (lon_ind == 'W') {
             lon = -lon;
         }
-        location_update_value(lat, IDX_CHAR_VAL_LATITUDE);
-        location_update_value(lon, IDX_CHAR_VAL_LONGITUDE);
+        location_update_value(lat, IDX_CHAR_VAL_LATITUDE, false);
+        location_update_value(lon, IDX_CHAR_VAL_LONGITUDE, false);
     }
 }
 
@@ -135,7 +135,7 @@ void gps_get_speed(uint8_t* data) {
         mempcpy(substr, start, end - start);
         substr[end-start] = 0;
         speed = atof(substr);
-        location_update_value(speed, IDX_CHAR_VAL_SPEED);
+        location_update_value(speed, IDX_CHAR_VAL_SPEED, false);
     }
 }
 
@@ -167,10 +167,8 @@ void gps_satelite_info(uint8_t* data) {
 
         uint8_t satelite_number = atoi(substr);
 
-        location_update_u8_value(satelite_number, IDX_CHAR_VAL_GPS_SATELITE_COUNT);
-        location_update_u8_value(fix, IDX_CHAR_VAL_GPS_FIX);
-
-        ESP_LOGI("gps_satelite_info", "fix %d sat_num %d", fix, satelite_number);
+        location_update_u8_value(satelite_number, IDX_CHAR_VAL_GPS_SATELITE_COUNT, false);
+        location_update_u8_value(fix, IDX_CHAR_VAL_GPS_FIX, false);
     }
 }
 

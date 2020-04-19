@@ -68,9 +68,9 @@ void read_adc_data() {
         if (iterator == ticks_per_second/2) {
             iterator = 0;
             voltage = read_voltage();
-            battery_update_value(current, IDX_CHAR_VAL_CURRENT);
-            battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE);
-            battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY);
+            battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
+            battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
+            battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
         }
         iterator++;
 
