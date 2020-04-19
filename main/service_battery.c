@@ -212,6 +212,16 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
 
                 battery_notification_table[index] = descr_value;
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
+
+                if (index == IDX_CHAR_CFG_VOLTAGE) {
+                    battery_update_value(state.voltage.value, IDX_CHAR_VAL_VOLTAGE);
+                } else if (index == IDX_CHAR_CFG_CURRENT) {
+                    battery_update_value(state.current.value, IDX_CHAR_VAL_CURRENT);
+                } else if (index == IDX_CHAR_CFG_USED_ENERGY) {
+                    battery_update_value(state.used_energy.value, IDX_CHAR_VAL_USED_ENERGY);
+                } else if (index == IDX_CHAR_CFG_TOTAL_ENERGY) {
+                    battery_update_value(state.total_energy.value, IDX_CHAR_VAL_TOTAL_ENERGY);
+                }
             }
             break;
         case ESP_GATTS_EXEC_WRITE_EVT: 
