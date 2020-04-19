@@ -21,6 +21,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "driver/gpio.h"
+
 static const char *TAG = "esk8";
 
 struct CurrentState state;
@@ -36,6 +38,28 @@ bool is_in_driving_state() {
 void set_device_state(device_state_t new_state) {
   state.riding_state = new_state;
   settings_set_value(IDX_CHAR_VAL_RIDING_STATE, 1, &new_state);
+}
+
+
+
+void main_led_notification() {
+  gpio_pad_select_gpio(GPIO_NUM_22);
+  gpio_set_direction(GPIO_NUM_22, GPIO_MODE_OUTPUT);
+
+  while (1){
+    uint16_t delay = 100;
+    
+    if (state.riding_state == STATE_RIDING) {
+      delay = 300;
+    } else if (state.riding_state == STATE_PARKED) {
+      delay = 1000;
+    }
+    
+    gpio_set_level(GPIO_NUM_22, 0);
+    vTaskDelay(delay/ portTICK_PERIOD_MS);
+    gpio_set_level(GPIO_NUM_22, 1);
+    vTaskDelay(delay/ portTICK_PERIOD_MS);
+  }
 }
 
 void app_main(void) {
@@ -54,4 +78,6 @@ void app_main(void) {
   log_init();
 
   wifi_init();
+
+  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, NULL);
 }
