@@ -6,6 +6,7 @@
 #include "string.h"
 #include "driver/gpio.h"
 #include "state.h"
+#include "service_location.h"
 
 static const int RX_BUF_SIZE = 1024;
 
@@ -113,10 +114,9 @@ void gps_get_location(uint8_t* data) {
         if (lon_ind == 'W') {
             lon = -lon;
         }
+        location_update_value(lat, IDX_CHAR_VAL_LATITUDE);
+        location_update_value(lon, IDX_CHAR_VAL_LONGITUDE);
     }
-
-    state.latitude.value = lat;
-    state.longitude.value = lon;
 }
 
 void gps_get_speed(uint8_t* data) {
@@ -126,6 +126,7 @@ void gps_get_speed(uint8_t* data) {
     char substr[12];
 
     char* start = strstr((char*) data, "N,");
+    double speed = 0;
 
     if (start != NULL) {
         start = start + 2;
@@ -133,7 +134,43 @@ void gps_get_speed(uint8_t* data) {
 
         mempcpy(substr, start, end - start);
         substr[end-start] = 0;
-        state.speed.value = atof(substr);
+        speed = atof(substr);
+        location_update_value(speed, IDX_CHAR_VAL_SPEED);
+    }
+}
+
+void gps_satelite_info(uint8_t* data) {
+    if (data == NULL) {
+        return;
+    }
+
+    char substr[12];
+    char* start = strchr((char*) data, ',') + 1;
+
+    if (start != NULL) {
+        for (uint8_t i=0; i<5; i++) {
+            start = strchr((char*)start, ',') +1;
+        }
+
+        char* end = strchr((char*)start, ',');
+
+        mempcpy(substr, start, end - start);
+        substr[end-start] = 0;
+
+        uint8_t fix = atoi(substr);
+
+        start = end +1;
+        end = strchr((char*)start, ',');
+
+        mempcpy(substr, start, end - start);
+        substr[end-start] = 0;
+
+        uint8_t satelite_number = atoi(substr);
+
+        location_update_u8_value(satelite_number, IDX_CHAR_VAL_GPS_SATELITE_COUNT);
+        location_update_u8_value(fix, IDX_CHAR_VAL_GPS_FIX);
+
+        ESP_LOGI("gps_satelite_info", "fix %d sat_num %d", fix, satelite_number);
     }
 }
 
@@ -141,6 +178,7 @@ void gps_handle_nmea_data(uint8_t* data, uint16_t len){
     gps_get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
     gps_get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
     gps_get_speed((uint8_t*)strstr((char*)data, "$GNVTG"));
+    gps_satelite_info((uint8_t*)strstr((char*)data, "$GNGGA"));
 }
 
 void gps_rx_task() {

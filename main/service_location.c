@@ -89,6 +89,9 @@ static const uint16_t GATTS_CHAR_UUID_LONGITUDE    = 0xFE02;
 static const uint16_t GATTS_CHAR_UUID_SPEED        = 0xFE03;
 static const uint16_t GATTS_CHAR_UUID_TRIP_DISTANCE        = 0xFE04;
 
+static const uint16_t GATTS_CHAR_UUID_GPS_FIX_STATUS        = 0xFE05;
+static const uint16_t GATTS_CHAR_UUID_GPG_SATELITE_COUNT        = 0xFE06;
+
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
@@ -153,6 +156,30 @@ static const esp_gatts_attr_db_t gatt_db[LOCATION_IDX_NB] = {
     [IDX_CHAR_CFG_TRIP_DISTANCE] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
+
+    [IDX_CHAR_GPS_FIX] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_GPS_FIX] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_GPS_FIX_STATUS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      1, 1, (uint8_t *) &state.gps_fix_status}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_GPS_FIX] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
+
+    [IDX_CHAR_GPS_SATELITE_COUNT] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_GPS_SATELITE_COUNT] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_GPG_SATELITE_COUNT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      1, 1, (uint8_t *) &state.gps_satelites_count}},
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_GPS_SATELITE_COUNT] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 };
 
 struct gatts_profile_inst init_location_service() {
@@ -205,6 +232,20 @@ void location_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
 
                 location_notification_table[index] = descr_value;
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
+
+                if (index == IDX_CHAR_CFG_TRIP_DISTANCE) {
+                    location_update_value(state.trip_distance.value, IDX_CHAR_VAL_TRIP_DISTANCE);
+                } else if (index == IDX_CHAR_CFG_SPEED) {
+                    location_update_value(state.speed.value, IDX_CHAR_VAL_SPEED);
+                } else if (index == IDX_CHAR_CFG_LATITUDE) {
+                    location_update_value(state.latitude.value, IDX_CHAR_VAL_LATITUDE);
+                } else if (index == IDX_CHAR_CFG_LONGITUDE) {
+                    location_update_value(state.longitude.value, IDX_CHAR_VAL_LONGITUDE);
+                } else if (index == IDX_CHAR_CFG_GPS_FIX) {
+                    location_update_u8_value(state.gps_fix_status, IDX_CHAR_VAL_GPS_FIX);
+                } else if (index == IDX_CHAR_CFG_GPS_SATELITE_COUNT) {
+                    location_update_u8_value(state.gps_satelites_count, IDX_CHAR_VAL_GPS_SATELITE_COUNT);
+                }
             }
             break;
         case ESP_GATTS_EXEC_WRITE_EVT: 
@@ -260,6 +301,30 @@ void location_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
         case ESP_GATTS_UNREG_EVT:
         case ESP_GATTS_DELETE_EVT:
         default:
+            break;
+    }
+}
+
+void location_update_u8_value(uint8_t value, uint16_t characteristic_index) {
+    if (location_notification_table[characteristic_index+1] == 0x0001) {
+        ESP_LOGI(GATTS_TABLE_TAG, "location_update_value %d = %d", characteristic_index, value);
+
+        esp_ble_gatts_send_indicate(
+            location_profile_tab.gatts_if,
+            connection_id,
+            location_handle_table[characteristic_index],
+            1,
+            &value,
+            false
+        );
+    }
+
+    switch (characteristic_index) {
+        case IDX_CHAR_VAL_GPS_FIX:
+            state.gps_fix_status = value;
+            break;
+        case IDX_CHAR_VAL_GPS_SATELITE_COUNT:
+            state.gps_satelites_count= value;
             break;
     }
 }

@@ -263,6 +263,12 @@ void settings_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t ga
 
                 settings_notification_table[index] = descr_value;
                 ESP_LOGI(GATTS_TABLE_TAG, "notify enable %d %d %d ",index, param->write.handle, descr_value);
+
+                if (param->write.handle == settings_handle_table[IDX_CHAR_CFG_RIDING_STATE]) {
+                    settings_set_value(IDX_CHAR_VAL_RIDING_STATE, 1, &state.riding_state);
+                } else if (param->write.handle == settings_handle_table[IDX_CHAR_CFG_FREE_STORAGE]) {
+                    settings_set_value(IDX_CHAR_VAL_FREE_STORAGE, 4, &state.free_storage);
+                }
             }
 
             settings_set_state(param->write.handle, param->write.value, param->write.len);
