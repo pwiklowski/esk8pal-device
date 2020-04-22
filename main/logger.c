@@ -16,7 +16,7 @@
 
 #define BASE_LOCATION "/sdcard/"
 #define NOT_ACTIVE_TIME_MS 1000*10
-#define LOG_INTERVAL 1000*5
+#define LOG_INTERVAL 1000
 static const char *TAG = "SD";
 
 extern struct CurrentState state;
