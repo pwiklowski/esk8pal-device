@@ -105,6 +105,20 @@ void log_update_free_space() {
 	ESP_LOGI(TAG, "Free space %d/%d", state.free_storage, state.total_storage);
 }
 
+
+void log_add_header(char* name) {
+  FILE *f = fopen(name, "a");
+  if (f == NULL) {
+    ESP_LOGE(TAG, "Failed to open file for writing");
+    log_init_sd_card();
+    return;
+  }
+
+  fprintf(f, "esp_log_timestamp, timestamp, latitude, longitude, speed, voltage, current, used_energy, total_energy, trip_distance\n");
+
+  fclose(f);
+}
+
 void log_add_entry(char* name) {
   FILE *f = fopen(name, "a");
   if (f == NULL) {
@@ -199,6 +213,8 @@ void log_task(void* params) {
 
     char log_filename[40];
     log_generate_filename(log_filename);
+
+    log_add_header(log_filename);
 
     ESP_LOGI(TAG, "Start log %s", log_filename);
     uint32_t not_active_start_time = 0;
