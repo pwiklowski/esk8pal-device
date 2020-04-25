@@ -127,9 +127,12 @@ void log_add_entry(char* name) {
     return;
   }
 
-  fprintf(f, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", 
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  fprintf(f, "%d, %ld, %f, %f, %f, %f, %f, %f, %f, %f\n", 
     esp_log_timestamp(), 
-    state.time,
+    now.tv_sec,
     state.latitude.value,
     state.longitude.value,
     state.speed.value,
@@ -139,9 +142,11 @@ void log_add_entry(char* name) {
     state.total_energy.value,
     state.trip_distance.value
   );
-  ESP_LOGI(TAG, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f", 
+
+
+  ESP_LOGI(TAG, "%d, %ld, %f, %f, %f, %f, %f, %f, %f, %f", 
     esp_log_timestamp(), 
-    state.time,
+    now.tv_sec,
     state.latitude.value,
     state.longitude.value,
     state.speed.value,
