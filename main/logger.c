@@ -207,6 +207,8 @@ void log_task(void* params) {
 
     xTaskCreate(log_track_task, "log_track_task", 1024*2, NULL, configMAX_PRIORITIES-1, &trackTaskHandle);
 
+    location_update_value(0, IDX_CHAR_VAL_TRIP_DISTANCE, false);
+
     while(1) { 
       log_add_entry(log_filename);
 
