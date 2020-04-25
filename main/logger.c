@@ -22,6 +22,11 @@
 #define LOG_INTERVAL 1000
 static const char *TAG = "SD";
 
+#define PIN_NUM_MISO 2
+#define PIN_NUM_MOSI 15
+#define PIN_NUM_CLK  14
+#define PIN_NUM_CS   13
+
 extern struct CurrentState state;
 
 extern bool is_in_driving_state();
@@ -40,18 +45,14 @@ void log_generate_filename(char* name) {
 }
 
 void log_init_sd_card() {
-  ESP_LOGI(TAG, "Initializing SD card");
+  ESP_LOGI(TAG, "Using SPI peripheral");
 
-  ESP_LOGI(TAG, "Using SDMMC peripheral");
-  sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-
-  sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-
-  gpio_set_pull_mode(GPIO_NUM_15, GPIO_PULLUP_ONLY); // CMD, needed in 4- and 1- line modes
-  gpio_set_pull_mode(GPIO_NUM_2, GPIO_PULLUP_ONLY);  // D0, needed in 4- and 1-line modes
-  gpio_set_pull_mode(GPIO_NUM_4, GPIO_PULLUP_ONLY);  // D1, needed in 4-line mode only
-  gpio_set_pull_mode(GPIO_NUM_12, GPIO_PULLUP_ONLY); // D2, needed in 4-line mode only
-  gpio_set_pull_mode(GPIO_NUM_13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
+  sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+  sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
+  slot_config.gpio_miso = PIN_NUM_MISO;
+  slot_config.gpio_mosi = PIN_NUM_MOSI;
+  slot_config.gpio_sck  = PIN_NUM_CLK;
+  slot_config.gpio_cs   = PIN_NUM_CS;
 
   esp_vfs_fat_sdmmc_mount_config_t mount_config = {
       .format_if_mount_failed = false,
