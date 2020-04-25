@@ -12,6 +12,9 @@
 #include "service_location.h"
 #include "math.h"
 
+#include <time.h>
+#include <sys/time.h>
+
 #define d2r (M_PI / 180.0)
 
 #define BASE_LOCATION "/sdcard/"
@@ -25,7 +28,15 @@ extern bool is_in_driving_state();
 extern void set_device_state(device_state_t state);
 
 void log_generate_filename(char* name) {
-  sprintf(name, "/sdcard/log.%d.%d.%d.%d.log", state.year, state.month, state.day, state.time);
+
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  time_t t =  (time_t) now.tv_sec;
+  struct tm* time;
+  time = gmtime(&t);
+
+  sprintf(name, "/sdcard/log.%d.%02d.%02d.%02d.%02d.%02d.log", (time->tm_year + 1900), time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
 }
 
 void log_init_sd_card() {
@@ -91,15 +102,6 @@ void log_update_free_space() {
   settings_set_value(IDX_CHAR_VAL_TOTAL_STORAGE, 4, (uint8_t*) &state.total_storage);
 
 	ESP_LOGI(TAG, "Free space %d/%d", state.free_storage, state.total_storage);
-}
-
-void log_wait_for_time_to_be_initiated() {
-  while (1) {
-    if (state.time != 0) {
-      break;
-    }
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-  }
 }
 
 void log_add_entry(char* name) {
@@ -184,7 +186,6 @@ void log_track_task() {
 
 void log_task(void* params) {
   ESP_LOGI(TAG, "Wait for time value to be initiated");
-  log_wait_for_time_to_be_initiated();
   log_update_free_space();
   ESP_LOGI(TAG, "Time value initiated");
 

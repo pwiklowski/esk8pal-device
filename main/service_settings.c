@@ -16,6 +16,8 @@
 #include "settings.h"
 #include "wifi.h"
 
+#include <time.h>
+#include <sys/time.h>
 
 #define GATTS_TABLE_TAG "SettingsService"
 
@@ -92,6 +94,7 @@ static const uint16_t GATTS_CHAR_UUID_WIFI_PASS     = 0xFD04;
 static const uint16_t GATTS_CHAR_UUID_WIFI_ENABLED  = 0xFD05;
 static const uint16_t GATTS_CHAR_UUID_FREE_STORAGE  = 0xFD06;
 static const uint16_t GATTS_CHAR_UUID_TOTAL_STORAGE  = 0xFD07; 
+static const uint16_t GATTS_CHAR_UUID_TIME  = 0xFD08; 
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -103,6 +106,8 @@ static const uint8_t char_prop_read_notify   =  ESP_GATT_CHAR_PROP_BIT_READ | ES
 
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
 static const uint8_t config_descriptor[2]      = {0x00, 0x00};
+
+uint8_t time_data[6];
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
@@ -181,10 +186,35 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     [IDX_CHAR_VAL_TOTAL_STORAGE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TOTAL_STORAGE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(state.total_storage), sizeof(state.total_storage), (uint8_t *)&state.total_storage}},
+
+    [IDX_CHAR_TIME]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_TIME]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TIME, ESP_GATT_PERM_WRITE,
+      sizeof(time_data), sizeof(time_data), (uint8_t *)&time_data}},
 };
 
 struct gatts_profile_inst init_settings_service() {
     return settings_profile_tab;
+}
+
+void set_time(int year, int month, int day, int hour, int min, int sec) {
+    ESP_LOGI(GATTS_TABLE_TAG, "set_time %d %d %d %d %d %d", year, month, day, hour, min, sec);
+
+    struct tm tm;
+    tm.tm_year = year - 1900;
+
+    tm.tm_mon = month;
+    tm.tm_mday = day;
+
+    tm.tm_hour = hour;
+    tm.tm_min = min;
+    tm.tm_sec = sec ;
+    time_t t = mktime(&tm);
+    struct timeval now = { .tv_sec = t };
+    settimeofday(&now, NULL);
 }
 
 void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
@@ -212,6 +242,19 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         state.wifi_pass[len] = 0;
         settings_save();
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_PASS %s", state.wifi_pass);
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_TIME]) {
+        if (len != 6) return;
+
+        set_time(
+            (int)2000 + (int)value[0], 
+            value[1],
+            value[2],
+            value[3],
+            value[4],
+            value[5]
+        );
+
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_TIME %s", state.wifi_pass);
     }
 }
 
