@@ -32,41 +32,11 @@ void gps_init_uart() {
     uart_driver_install(UART_NUM_2, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
 }
 
-
-void gps_get_time_date(uint8_t* data) {
-    if (data == NULL) {
-        return;
-    }
-
-    char substr[10];
-
-    char* start = strchr((char*)data, ',') + 1;
-    strncpy(substr, start, 6);
-    substr[6] = 0;
-    state.time = atoi(substr);
-
-    start = strchr((char*)start, ',') + 1;
-    strncpy(substr, start, 2);
-    substr[2] = 0;
-    state.day = atoi(substr);
-
-    start = strchr((char*)start, ',') + 1;
-    strncpy(substr, start, 2);
-    substr[2] = 0;
-    state.month = atoi(substr);
-
-    start = strchr((char*)start, ',') + 1;
-    strncpy(substr, start, 4);
-    substr[4] = 0;
-    state.year = atoi(substr);
-}
-
 bool gps_is_location_valid(uint8_t* data) {
     char* end_line_index = strchr((char*) data, 0x0D);
     char* is_data_correct_marker = strstr((char*) data, ",A,");
     return is_data_correct_marker != NULL && is_data_correct_marker < end_line_index;
 }
-
 
 void gps_get_location(uint8_t* data) {
     if (data == NULL) {
@@ -173,7 +143,6 @@ void gps_satelite_info(uint8_t* data) {
 }
 
 void gps_handle_nmea_data(uint8_t* data, uint16_t len){
-    gps_get_time_date((uint8_t*)strstr((char*)data, "$GNZDA"));
     gps_get_location((uint8_t*)strstr((char*)data, "$GNGLL"));
     gps_get_speed((uint8_t*)strstr((char*)data, "$GNVTG"));
     gps_satelite_info((uint8_t*)strstr((char*)data, "$GNGGA"));

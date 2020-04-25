@@ -32,11 +32,6 @@ struct CurrentState {
   uint8_t gps_fix_status;
   uint8_t gps_satelites_count;
 
-  uint8_t day;
-  uint8_t month;
-  uint16_t year;
-  uint32_t time;
-
   uint8_t riding_state;
   uint8_t manual_ride_start;
   uint8_t wifi_ssid[21];
