@@ -114,7 +114,7 @@ void log_add_header(char* name) {
     return;
   }
 
-  fprintf(f, "esp_log_timestamp, timestamp, latitude, longitude, speed, voltage, current, used_energy, total_energy, trip_distance, altitude\n");
+  fprintf(f, "esp_log_timestamp,timestamp,latitude,longitude,speed,voltage,current,used_energy,total_energy,trip_distance,altitude\n");
 
   fclose(f);
 }
@@ -130,7 +130,7 @@ void log_add_entry(char* name) {
   struct timeval now;
   gettimeofday(&now, NULL);
 
-  fprintf(f, "%d, %ld, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", 
+  fprintf(f, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", 
     esp_log_timestamp(), 
     now.tv_sec,
     state.latitude.value,
@@ -145,7 +145,7 @@ void log_add_entry(char* name) {
   );
 
 
-  ESP_LOGI(TAG, "%d, %ld, %f, %f, %f, %f, %f, %f, %f, %f, %f", 
+  ESP_LOGI(TAG, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f", 
     esp_log_timestamp(), 
     now.tv_sec,
     state.latitude.value,
