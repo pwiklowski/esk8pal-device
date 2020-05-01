@@ -26,9 +26,10 @@
 static const char *TAG = "esk8";
 
 struct CurrentState state;
+struct Settings settings;
 
 bool is_in_driving_state() {
-  if (state.manual_ride_start == MANUAL_START_ENABLED) {
+  if (settings.manual_ride_start == MANUAL_START_ENABLED) {
     return state.riding_state == STATE_RIDING;
   } else {
     return state.current.value > 0.5 || state.speed.value > 1.0; // TODO add condition when logs neeed to be collected
@@ -39,8 +40,6 @@ void set_device_state(device_state_t new_state) {
   state.riding_state = new_state;
   settings_set_value(IDX_CHAR_VAL_RIDING_STATE, 1, &new_state);
 }
-
-
 
 void main_led_notification() {
   gpio_pad_select_gpio(GPIO_NUM_22);
@@ -64,7 +63,7 @@ void main_led_notification() {
 
 void app_main(void) {
   state.riding_state = STATE_PARKED;
-  state.manual_ride_start = MANUAL_START_DISABLED;
+  settings.manual_ride_start = MANUAL_START_DISABLED;
 
   settings_init();
 

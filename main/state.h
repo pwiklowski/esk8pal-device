@@ -37,14 +37,16 @@ struct CurrentState {
   uint8_t gps_satelites_count;
 
   uint8_t riding_state;
-  uint8_t manual_ride_start;
-  uint8_t wifi_ssid[21];
-  uint8_t wifi_pass[21];
-
-  uint8_t wifi_enabled;
 
   uint32_t free_storage;
   uint32_t total_storage;
+};
+
+struct Settings {
+  uint8_t manual_ride_start;
+  uint8_t wifi_enabled;
+  uint8_t wifi_ssid[21];
+  uint8_t wifi_pass[21];
 };
 
 #endif

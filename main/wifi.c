@@ -2,6 +2,8 @@
 #include "state.h"
 
 extern struct CurrentState state;
+extern struct Settings settings;
+
 static const char *TAG = "WiFi";
 
 bool enabled = false;
@@ -24,9 +26,9 @@ void wifi_init_softap() {
         },
     };
 
-    memcpy(wifi_config.ap.ssid, state.wifi_ssid, strlen((char* )state.wifi_ssid));
-    wifi_config.ap.ssid_len = strlen((char* )state.wifi_ssid),
-    memcpy(wifi_config.ap.password, state.wifi_pass, strlen((char* )state.wifi_pass));
+    memcpy(wifi_config.ap.ssid, settings.wifi_ssid, strlen((char*) settings.wifi_ssid));
+    wifi_config.ap.ssid_len = strlen((char*) settings.wifi_ssid),
+    memcpy(wifi_config.ap.password, settings.wifi_pass, strlen((char*) settings.wifi_pass));
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));

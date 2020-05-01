@@ -30,6 +30,7 @@ static const char *TAG = "SD";
 #define PIN_NUM_CS   13
 
 extern struct CurrentState state;
+extern struct Settings settings;
 
 extern bool is_in_driving_state();
 extern void set_device_state(device_state_t state);
@@ -251,7 +252,7 @@ void log_task(void* params) {
       log_add_entry(log_filename);
 
       if (!is_in_driving_state()) {
-        if (not_active_start_time == 0 && !state.manual_ride_start ) {
+        if (not_active_start_time == 0 && !settings.manual_ride_start ) {
           not_active_start_time = esp_log_timestamp();
           ESP_LOGI(TAG, "detected lack of activity ");
         } else {

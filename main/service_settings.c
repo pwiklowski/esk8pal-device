@@ -28,6 +28,7 @@
 #define CHAR_DECLARATION_SIZE       (sizeof(uint8_t))
 
 extern struct CurrentState state;
+extern struct Settings settings;
 
 static uint8_t adv_config_done       = 0;
 
@@ -136,7 +137,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_MANUAL_RIDE_START]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_MANUAL_RIDE_START, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(state.manual_ride_start), sizeof(state.manual_ride_start), (uint8_t *)&state.manual_ride_start}},
+      sizeof(settings.manual_ride_start), sizeof(settings.manual_ride_start), (uint8_t *)&settings.manual_ride_start}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_SSID]      =
@@ -145,7 +146,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_SSID]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_SSID, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(state.wifi_ssid), sizeof(state.wifi_ssid), (uint8_t *)state.wifi_ssid}},
+      sizeof(settings.wifi_ssid), sizeof(settings.wifi_ssid), (uint8_t *)settings.wifi_ssid}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_PASS]      =
@@ -154,7 +155,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_PASS]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(state.wifi_pass), sizeof(state.wifi_pass), (uint8_t *)state.wifi_pass}},
+      sizeof(settings.wifi_pass), sizeof(settings.wifi_pass), (uint8_t *)settings.wifi_pass}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_WIFI_ENABLED]      =
@@ -163,7 +164,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_ENABLED]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_ENABLED, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(state.wifi_enabled), sizeof(state.wifi_enabled), (uint8_t *)&state.wifi_enabled}},
+      sizeof(settings.wifi_enabled), sizeof(settings.wifi_enabled), (uint8_t *)&settings.wifi_enabled}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_FREE_STORAGE]      =
@@ -223,25 +224,25 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         state.riding_state = value[0];
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_RIDING_STATE %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_MANUAL_RIDE_START]) {
-        state.manual_ride_start = value[0];
+        settings.manual_ride_start = value[0];
         settings_save();
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_MANUAL_RIDE_START %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_ENABLED]) {
-        state.wifi_enabled = value[0];
+        settings.wifi_enabled = value[0];
 
-        wifi_set_state(state.wifi_enabled);
+        wifi_set_state(settings.wifi_enabled);
 
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_ENABLED %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID]) {
-        memcpy(state.wifi_ssid, value, len);
-        state.wifi_ssid[len] = 0;
+        memcpy(settings.wifi_ssid, value, len);
+        settings.wifi_ssid[len] = 0;
         settings_save();
-        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_SSID %s", state.wifi_ssid);
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_SSID %s", settings.wifi_ssid);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_PASS]) {
-        memcpy(state.wifi_pass, value, len);
-        state.wifi_pass[len] = 0;
+        memcpy(settings.wifi_pass, value, len);
+        settings.wifi_pass[len] = 0;
         settings_save();
-        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_PASS %s", state.wifi_pass);
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_PASS %s", settings.wifi_pass);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_TIME]) {
         if (len != 6) return;
 
@@ -254,7 +255,7 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
             value[5]
         );
 
-        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_TIME %s", state.wifi_pass);
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_TIME %s", settings.wifi_pass);
     }
 }
 

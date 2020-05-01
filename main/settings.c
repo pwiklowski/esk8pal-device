@@ -4,6 +4,7 @@
 #include "state.h"
 
 extern struct CurrentState state;
+extern struct Settings settings;
 const char *TAG = "Settings";
 
 #define KEY_WIFI_SSID "wifi_ssid"
@@ -17,13 +18,13 @@ void settings_load() {
   if (err != ESP_OK) {
     ESP_LOGE(TAG,"Error (%s) opening NVS handle!\n", esp_err_to_name(err));
   } else {
-    nvs_get_u8(my_handle, KEY_MANUAL_RIDE_START, &state.manual_ride_start);
+    nvs_get_u8(my_handle, KEY_MANUAL_RIDE_START, &settings.manual_ride_start);
 
     size_t len = 20;
-    nvs_get_str(my_handle, KEY_WIFI_SSID, (char* )state.wifi_ssid, &len);
+    nvs_get_str(my_handle, KEY_WIFI_SSID, (char*) settings.wifi_ssid, &len);
 
     len = 20;
-    nvs_get_str(my_handle, KEY_WIFI_PASS, (char* )state.wifi_pass, &len);
+    nvs_get_str(my_handle, KEY_WIFI_PASS, (char*) settings.wifi_pass, &len);
     nvs_close(my_handle);
   }
 }
@@ -35,9 +36,9 @@ void settings_save() {
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
   } else {
-    nvs_set_u8(my_handle, KEY_MANUAL_RIDE_START, state.manual_ride_start);
-    nvs_set_str(my_handle, KEY_WIFI_SSID, (char*) state.wifi_ssid);
-    nvs_set_str(my_handle, KEY_WIFI_PASS, (char*) state.wifi_pass);
+    nvs_set_u8(my_handle, KEY_MANUAL_RIDE_START, settings.manual_ride_start);
+    nvs_set_str(my_handle, KEY_WIFI_SSID, (char*) settings.wifi_ssid);
+    nvs_set_str(my_handle, KEY_WIFI_PASS, (char*) settings.wifi_pass);
 
     err = nvs_commit(my_handle);
     if (err != ESP_OK){
