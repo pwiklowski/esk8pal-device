@@ -145,11 +145,7 @@ void gps_satelite_info(uint8_t* data) {
         mempcpy(substr, start, end - start);
         substr[end-start] = 0;
 
-        double altitude = atof(substr);
-
-        ESP_LOGI("As", "altitude %f", altitude);
-
-        state.altitude = altitude;
+        state.altitude = atof(substr);;
 
         location_update_u8_value(satelite_number, IDX_CHAR_VAL_GPS_SATELITE_COUNT, false);
         location_update_u8_value(fix, IDX_CHAR_VAL_GPS_FIX, false);
