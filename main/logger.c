@@ -133,7 +133,7 @@ void log_add_entry(char* name) {
   gettimeofday(&now, NULL);
 
   fprintf(f, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", 
-    esp_log_timestamp(), 
+    state.riding_time,
     now.tv_sec,
     state.latitude.value,
     state.longitude.value,
@@ -148,7 +148,7 @@ void log_add_entry(char* name) {
 
 
   ESP_LOGI(TAG, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f", 
-    esp_log_timestamp(), 
+    state.riding_time, 
     now.tv_sec,
     state.latitude.value,
     state.longitude.value,
@@ -208,6 +208,13 @@ void log_track_task() {
     }
 }
 
+time_t log_get_current_time() {
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  return now.tv_sec;
+}
+
 void log_task(void* params) {
   ESP_LOGI(TAG, "Wait for time value to be initiated");
   log_update_free_space();
@@ -236,7 +243,11 @@ void log_task(void* params) {
 
     gps_disable_power_saving_mode();
 
+    time_t start_time = log_get_current_time();
+
     while(1) { 
+      state.riding_time = log_get_current_time() - start_time;
+
       log_add_entry(log_filename);
 
       if (!is_in_driving_state()) {

@@ -31,6 +31,8 @@ struct CurrentState {
 
   DoubleCharacteristic altitude;
 
+  uint32_t riding_time;
+
   uint8_t gps_fix_status;
   uint8_t gps_satelites_count;
 
