@@ -29,7 +29,7 @@ struct CurrentState {
 
   DoubleCharacteristic trip_distance;
 
-  double altitude;
+  DoubleCharacteristic altitude;
 
   uint8_t gps_fix_status;
   uint8_t gps_satelites_count;

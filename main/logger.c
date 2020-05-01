@@ -143,7 +143,7 @@ void log_add_entry(char* name) {
     state.used_energy.value,
     state.total_energy.value,
     state.trip_distance.value,
-    state.altitude
+    state.altitude.value
   );
 
 
@@ -158,7 +158,7 @@ void log_add_entry(char* name) {
     state.used_energy.value,
     state.total_energy.value,
     state.trip_distance.value,
-    state.altitude
+    state.altitude.value
   );
 
   fclose(f);
