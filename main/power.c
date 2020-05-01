@@ -13,9 +13,11 @@
 #define VOLTAGE_DIVIDER (1+12)/1
 #define CURRENT_SENSOR_SENSIVITY 0.026666666667
 #define AMPERE_PER_MS 1/(60*60*1000)
-#define CURRENT_NUM_SAMPLES 4
+#define CURRENT_NUM_SAMPLES 8
 
 ads1115_t ads;
+
+double zero = 1.65;
 
 static esp_err_t i2c_init() {
     int i2c_master_port = I2C_NUM_0;
@@ -32,7 +34,6 @@ static esp_err_t i2c_init() {
 }
 
 double read_current() {
-    double zero = 1.65; // TODO add calibration
 
     ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
     double current = 0;
@@ -41,6 +42,16 @@ double read_current() {
     }
 
     return (current/CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY;
+}
+
+void calibrate_current_sensor() {
+    ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
+    double current = 0;
+    for (uint8_t i=0; i<64; i++) { 
+        current += ads1115_get_voltage(&ads);
+    }
+    ESP_LOGI("ADC", "curr %f", current/64);
+    zero = current/64;
 }
 
 double read_voltage() {
@@ -85,5 +96,7 @@ void power_sensor_init() {
 
     ads1115_set_pga(&ads, ADS1115_FSR_2_048);
     ads1115_set_sps(&ads, ADS1115_SPS_860);
+
+    calibrate_current_sensor();
     xTaskCreate(read_adc_data, "read_adc_data", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 } 
