@@ -49,15 +49,17 @@ void main_led_notification() {
     uint16_t delay = 100;
     
     if (state.riding_state == STATE_RIDING) {
-      delay = 300;
+      delay = 200;
     } else if (state.riding_state == STATE_PARKED) {
-      delay = 1000;
+      delay = 2000;
     }
     
     gpio_set_level(GPIO_NUM_22, 0);
     vTaskDelay(delay/ portTICK_PERIOD_MS);
     gpio_set_level(GPIO_NUM_22, 1);
     vTaskDelay(delay/ portTICK_PERIOD_MS);
+
+    state_update();
   }
 }
 

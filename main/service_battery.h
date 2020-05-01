@@ -29,11 +29,17 @@ enum {
     IDX_CHAR_VAL_TOTAL_ENERGY,
     IDX_CHAR_CFG_TOTAL_ENERGY,
 
+    IDX_CHAR_STATE,
+    IDX_CHAR_VAL_STATE,
+    IDX_CHAR_CFG_STATE,
+
     BATTERY_IDX_NB,
 };
 
 struct gatts_profile_inst init_battery_service();
 void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 void battery_update_value(double value, uint16_t characteristic_index, bool force_notify);
+void state_update();
+
 
 #endif
