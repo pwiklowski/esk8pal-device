@@ -8,6 +8,8 @@
 #include "sdmmc_cmd.h"
 #include "state.h"
 
+#include "gps.h"
+
 #include "service_settings.h"
 #include "service_location.h"
 #include "math.h"
@@ -232,6 +234,8 @@ void log_task(void* params) {
 
     location_update_value(0, IDX_CHAR_VAL_TRIP_DISTANCE, false);
 
+    gps_disable_power_saving_mode();
+
     while(1) { 
       log_add_entry(log_filename);
 
@@ -250,6 +254,8 @@ void log_task(void* params) {
     }
     set_device_state(STATE_PARKED);
     log_update_free_space();
+
+    gps_enable_power_saving_mode();
 
     vTaskDelete(trackTaskHandle); 
 

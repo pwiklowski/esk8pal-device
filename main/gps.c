@@ -172,6 +172,16 @@ void gps_rx_task() {
     free(data);
 }
 
+void gps_enable_power_saving_mode() {
+    const char* msg = "$PMTK161,0*28\r\n";
+    uart_write_bytes(UART_NUM_2, msg, strlen(msg));
+}
+
+void gps_disable_power_saving_mode() {
+    const char* msg = "$PMTK101*32\r\n";
+    uart_write_bytes(UART_NUM_2, msg, strlen(msg));
+}
+
 void init_gps() {
     gps_init_uart();
     xTaskCreate(gps_rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
