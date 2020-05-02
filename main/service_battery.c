@@ -235,6 +235,8 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                     battery_update_value(state.used_energy.value, IDX_CHAR_VAL_USED_ENERGY, true);
                 } else if (index == IDX_CHAR_CFG_TOTAL_ENERGY) {
                     battery_update_value(state.total_energy.value, IDX_CHAR_VAL_TOTAL_ENERGY, true);
+                } else if (index == IDX_CHAR_CFG_STATE) {
+                    state_update();
                 }
             }
             break;

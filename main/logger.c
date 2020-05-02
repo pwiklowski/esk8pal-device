@@ -12,6 +12,7 @@
 
 #include "service_settings.h"
 #include "service_location.h"
+#include "service_battery.h"
 #include "math.h"
 
 #include <time.h>
@@ -242,6 +243,8 @@ void log_task(void* params) {
 
     location_update_value(0, IDX_CHAR_VAL_TRIP_DISTANCE, false);
 
+    state_update();
+
     gps_disable_power_saving_mode();
 
     time_t start_time = log_get_current_time();
@@ -270,6 +273,8 @@ void log_task(void* params) {
     gps_enable_power_saving_mode();
 
     vTaskDelete(trackTaskHandle); 
+
+    state_update();
 
     ESP_LOGI(TAG, "End log");
   }
