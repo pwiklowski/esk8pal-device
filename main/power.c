@@ -41,7 +41,7 @@ double read_current() {
         current += ads1115_get_voltage(&ads);
     }
 
-    return (current/CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY;
+    return -((current/CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY);
 }
 
 void calibrate_current_sensor() {
