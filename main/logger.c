@@ -190,6 +190,10 @@ void log_track_task() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint16_t measure_interval = 3000; //TODO add changing it based on current speed ?
 
+    while(state.gps_fix_status != 1) {
+      vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
+    }
+
     double pLatitude = state.latitude.value;
     double pLongtitude = state.longitude.value;
 
