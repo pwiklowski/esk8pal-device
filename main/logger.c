@@ -209,7 +209,6 @@ void log_track_task() {
 
         location_update_value(state.trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE, false);
         
-        ESP_LOGI("Distance", "chunk %f %f",chunk, state.trip_distance.value);
         vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
 }
@@ -222,10 +221,7 @@ time_t log_get_current_time() {
 }
 
 void log_task(void* params) {
-  ESP_LOGI(TAG, "Wait for time value to be initiated");
   log_update_free_space();
-  ESP_LOGI(TAG, "Time value initiated");
-
   TaskHandle_t trackTaskHandle;
 
   while (1) {
