@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_bt.h"
 
 
 #include "logger.h"
@@ -22,6 +23,8 @@
 #include "freertos/task.h"
 
 #include "driver/gpio.h"
+
+#include "esp_pm.h"
 
 static const char *TAG = "esk8";
 
@@ -79,6 +82,13 @@ void app_main(void) {
   log_init();
 
   wifi_init();
+  const esp_pm_config_esp32_t pm = {
+    .light_sleep_enable = true,
+    .max_freq_mhz = 160,
+    .min_freq_mhz = 80
+  };
+
+  ESP_ERROR_CHECK( esp_pm_configure(&pm) );
 
   xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, NULL);
 }
