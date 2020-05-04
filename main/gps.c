@@ -182,8 +182,15 @@ void gps_disable_power_saving_mode() {
     uart_write_bytes(UART_NUM_2, msg, strlen(msg));
 }
 
+void gps_set_baud_rate() {
+    const char* msg = "$PQBAUD,W,115200*43\r\n";
+    uart_write_bytes(UART_NUM_2, msg, strlen(msg));
+}
+
 void init_gps() {
     gps_init_uart();
+
+    //gps_set_baud_rate();
 
     gps_enable_power_saving_mode();
     xTaskCreate(gps_rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
