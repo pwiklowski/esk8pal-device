@@ -15,6 +15,8 @@
 #define AMPERE_PER_MS 1/(60*60*1000)
 #define CURRENT_NUM_SAMPLES 8
 
+extern bool is_in_driving_state();
+
 ads1115_t ads;
 
 double zero = 1.65;
@@ -73,19 +75,31 @@ void read_adc_data() {
     uint16_t iterator = 0;
 
     while (1) {
-        current = read_current();
-        mah += current * AMPERE_PER_MS * measure_interval;
+        if (is_in_driving_state()) { 
+            current = read_current();
+            mah += current * AMPERE_PER_MS * measure_interval;
 
-        if (iterator == ticks_per_second/2) {
-            iterator = 0;
-            voltage = read_voltage();
-            battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
-            battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
-            battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
+            if (iterator == ticks_per_second/2) {
+                iterator = 0;
+                voltage = read_voltage();
+                battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
+                battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
+                battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
+            }
+            iterator++;
+
+            vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
+        } else {
+            if (iterator == 5) {
+                iterator = 0;
+                voltage = read_voltage();
+                battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
+
+                ESP_LOGI("ADC", "curr %f", voltage);
+            }
+            iterator++;
+            vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
         }
-        iterator++;
-
-        vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
 }
 
