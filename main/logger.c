@@ -14,6 +14,8 @@
 #include "service_location.h"
 #include "service_battery.h"
 #include "math.h"
+#include "esp32/pm.h"
+#include "esp_pm.h"
 
 #include <time.h>
 #include <sys/time.h>
@@ -224,10 +226,20 @@ void log_task(void* params) {
   log_update_free_space();
   TaskHandle_t trackTaskHandle;
 
+  esp_err_t ret;
+
+  esp_pm_lock_handle_t pm_lock;
+  if((ret = esp_pm_lock_create(ESP_PM_APB_FREQ_MAX, 1, "CPU_FREQ_MAX", &pm_lock)) != ESP_OK) {
+      printf("pm config error %s\n", ret == ESP_ERR_INVALID_ARG ? "ESP_ERR_INVALID_ARG" : (ret == ESP_ERR_NOT_SUPPORTED ? "ESP_ERR_NOT_SUPPORTED" : "ESP_ERR_NO_MEM"));
+  }
+
   while (1) {
+    esp_pm_lock_release(pm_lock);
     while(!is_in_driving_state()) { 
       vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+
+    esp_pm_lock_acquire(pm_lock);
 
     char log_filename[40];
     log_generate_filename(log_filename);
@@ -282,5 +294,5 @@ void log_task(void* params) {
 }
 
 void log_init() {
-  xTaskCreate(log_task, "logger_task", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
+  xTaskCreate(log_task, "logger_task", 1024 * 6, NULL, configMAX_PRIORITIES, NULL);
 }
