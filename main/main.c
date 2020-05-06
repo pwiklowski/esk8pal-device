@@ -26,7 +26,12 @@
 
 #include "esp_pm.h"
 
-static const char *TAG = "esk8";
+#include "driver/i2c.h"
+#include "driver/gpio.h"
+#include "ds3231/ds3231.h"
+
+#include <time.h>
+#include <sys/time.h>
 
 struct CurrentState state;
 struct Settings settings;
@@ -66,9 +71,39 @@ void main_led_notification() {
   }
 }
 
+esp_err_t i2c_init() {
+    int i2c_master_port = I2C_NUM_0;
+    i2c_config_t conf;
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = GPIO_NUM_23;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num = GPIO_NUM_19;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = 400000;
+
+    i2c_param_config(i2c_master_port, &conf);
+    return i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
+}
+
+void app_init_time() {
+  struct tm time;
+
+  ds3231_get_time(&time);
+
+  time_t t = mktime(&time);
+  struct timeval now = { .tv_sec = t };
+  settimeofday(&now, NULL);
+
+  ESP_LOGI("MAIN", "time %ld %d:%d:%d", now.tv_sec, time.tm_hour, time.tm_min, time.tm_sec);
+}
+
 void app_main(void) {
   state.riding_state = STATE_PARKED;
   settings.manual_ride_start = MANUAL_START_DISABLED;
+
+  i2c_init();
+
+  app_init_time();
 
   settings_init();
 

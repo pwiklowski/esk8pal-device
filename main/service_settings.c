@@ -18,6 +18,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include "ds3231/ds3231.h"
 
 #define GATTS_TABLE_TAG "SettingsService"
 
@@ -216,6 +217,8 @@ void set_time(int year, int month, int day, int hour, int min, int sec) {
     time_t t = mktime(&tm);
     struct timeval now = { .tv_sec = t };
     settimeofday(&now, NULL);
+
+    ds3231_set_time(&tm);
 }
 
 void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {

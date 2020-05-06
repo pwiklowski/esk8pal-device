@@ -21,19 +21,6 @@ ads1115_t ads;
 
 double zero = 1.65;
 
-static esp_err_t i2c_init() {
-    int i2c_master_port = I2C_NUM_0;
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = GPIO_NUM_23;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = GPIO_NUM_19;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = 400000;
-
-    i2c_param_config(i2c_master_port, &conf);
-    return i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
-}
 
 double read_current() {
 
@@ -104,8 +91,6 @@ void read_adc_data() {
 }
 
 void power_sensor_init() {
-    i2c_init();
-
     ads = ads1115_config(I2C_NUM_0, 0x48);
 
     ads1115_set_pga(&ads, ADS1115_FSR_2_048);
