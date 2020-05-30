@@ -289,6 +289,7 @@ void log_task(void* params) {
     state_update();
 
     ESP_LOGI(TAG, "End log");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
   vTaskDelete(NULL);
 }

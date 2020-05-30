@@ -196,7 +196,9 @@ void init_gps() {
     gps_init_uart();
 
     //gps_set_baud_rate();
-
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     gps_enable_power_saving_mode();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    
     xTaskCreate(gps_rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
 }
