@@ -63,6 +63,7 @@ void read_adc_data() {
 
     while (1) {
         if (is_in_driving_state()) { 
+            power_up_module();
             current = read_current();
             mah += current * AMPERE_PER_MS * measure_interval;
 
@@ -77,12 +78,15 @@ void read_adc_data() {
 
             vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
         } else {
-            if (iterator == 5) {
+            if (iterator == 50) {
+                power_up_module();
+                vTaskDelayUntil(&xLastWakeTime, 10 / portTICK_PERIOD_MS);
                 iterator = 0;
                 voltage = read_voltage();
                 battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
 
-                ESP_LOGI("ADC", "curr %f", voltage);
+                ESP_LOGI("ADC", "voltage %f", voltage);
+                power_down_module();
             }
             iterator++;
             vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
@@ -90,12 +94,27 @@ void read_adc_data() {
     }
 }
 
+void power_up_module() {
+    gpio_set_level(GPIO_NUM_27, 1);
+}
+
+void power_down_module() {
+    gpio_set_level(GPIO_NUM_27, 0);
+}
+
 void power_sensor_init() {
+    gpio_pad_select_gpio(GPIO_NUM_27);
+    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
+    gpio_set_pull_mode(GPIO_NUM_27, GPIO_PULLUP_PULLDOWN);
+
+    gpio_set_level(GPIO_NUM_27, 1);
+
     ads = ads1115_config(I2C_NUM_0, 0x48);
 
     ads1115_set_pga(&ads, ADS1115_FSR_2_048);
     ads1115_set_sps(&ads, ADS1115_SPS_860);
 
     calibrate_current_sensor();
+    gpio_set_level(GPIO_NUM_27, 0);
     xTaskCreate(read_adc_data, "read_adc_data", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 } 
