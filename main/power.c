@@ -95,11 +95,11 @@ void read_adc_data() {
 }
 
 void power_up_module() {
-    gpio_set_level(GPIO_NUM_27, 1);
+    gpio_set_level(GPIO_NUM_27, 0);
 }
 
 void power_down_module() {
-    gpio_set_level(GPIO_NUM_27, 0);
+    gpio_set_level(GPIO_NUM_27, 1);
 }
 
 void power_sensor_init() {
