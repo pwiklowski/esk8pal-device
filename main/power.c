@@ -68,18 +68,19 @@ void read_adc_data() {
             current = read_current();
             mah += current * AMPERE_PER_MS * measure_interval;
 
-            if (iterator == ticks_per_second/2) {
+            if (iterator >= ticks_per_second/2) {
                 iterator = 0;
                 voltage = read_voltage();
                 battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
                 battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
                 battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
+                ESP_LOGI("ADC", "v=%f c=%f", voltage, current);
             }
             iterator++;
 
             vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
         } else {
-            if (iterator > 50) {
+            if (iterator >= 50) {
                 power_up_module();
                 vTaskDelayUntil(&xLastWakeTime, 10 / portTICK_PERIOD_MS);
                 iterator = 0;
