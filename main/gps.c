@@ -8,6 +8,9 @@
 #include "state.h"
 #include "service_location.h"
 
+#include "esp32/pm.h"
+#include "esp_pm.h"
+
 static const int RX_BUF_SIZE = 1024;
 
 #define TXD_PIN (GPIO_NUM_17)
@@ -17,6 +20,8 @@ static const char *RX_TASK_TAG = "RX_TASK";
 
 extern struct CurrentState state;
 extern bool is_in_driving_state();
+
+esp_pm_lock_handle_t pm_lock;
 
 void gps_init_uart() {
     const uart_config_t uart_config = {
@@ -193,12 +198,23 @@ void gps_set_baud_rate() {
 }
 
 void init_gps() {
+    esp_err_t ret;
+
+    if((ret = esp_pm_lock_create(ESP_PM_APB_FREQ_MAX, 1, "CPU_FREQ_MAX", &pm_lock)) != ESP_OK) {
+        printf("pm config error %s\n", ret == ESP_ERR_INVALID_ARG ? "ESP_ERR_INVALID_ARG" : (ret == ESP_ERR_NOT_SUPPORTED ? "ESP_ERR_NOT_SUPPORTED" : "ESP_ERR_NO_MEM"));
+    }
+    
     gps_init_uart();
 
     //gps_set_baud_rate();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    gps_enable_power_saving_mode();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
     
+    esp_pm_lock_acquire(pm_lock);
+
+    gps_disable_power_saving_mode();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    gps_enable_power_saving_mode();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    esp_pm_lock_release(pm_lock);
+
     xTaskCreate(gps_rx_task, "uart_rx_task", 1024*2, NULL, configMAX_PRIORITIES, NULL);
 }
