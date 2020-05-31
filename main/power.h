@@ -3,4 +3,7 @@
 
 void power_sensor_init();
 
+void power_up_module();
+void power_down_module();
+
 #endif

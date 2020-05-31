@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "power.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -107,14 +108,14 @@ void power_sensor_init() {
     gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
     gpio_set_pull_mode(GPIO_NUM_27, GPIO_PULLUP_PULLDOWN);
 
-    gpio_set_level(GPIO_NUM_27, 1);
-
     ads = ads1115_config(I2C_NUM_0, 0x48);
 
     ads1115_set_pga(&ads, ADS1115_FSR_2_048);
     ads1115_set_sps(&ads, ADS1115_SPS_860);
 
+    power_up_module();
     calibrate_current_sensor();
-    gpio_set_level(GPIO_NUM_27, 0);
+    power_down_module();
+
     xTaskCreate(read_adc_data, "read_adc_data", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 } 
