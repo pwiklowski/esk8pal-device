@@ -114,7 +114,9 @@ void power_sensor_init() {
     ads1115_set_sps(&ads, ADS1115_SPS_860);
 
     power_up_module();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     calibrate_current_sensor();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     power_down_module();
 
     xTaskCreate(read_adc_data, "read_adc_data", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
