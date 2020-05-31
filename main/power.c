@@ -78,7 +78,7 @@ void read_adc_data() {
 
             vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
         } else {
-            if (iterator == 50) {
+            if (iterator > 50) {
                 power_up_module();
                 vTaskDelayUntil(&xLastWakeTime, 10 / portTICK_PERIOD_MS);
                 iterator = 0;
