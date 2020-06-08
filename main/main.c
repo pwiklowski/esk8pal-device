@@ -5,7 +5,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_bt.h"
-
+#include "esp_task_wdt.h"
 
 #include "logger.h"
 #include "gatt.h"
@@ -68,6 +68,8 @@ void main_led_notification() {
     vTaskDelay(delay/ portTICK_PERIOD_MS);
 
     state_update();
+
+    esp_task_wdt_reset();
   }
 }
 
@@ -125,5 +127,10 @@ void app_main(void) {
 
   ESP_ERROR_CHECK( esp_pm_configure(&pm) );
 
-  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, NULL);
+  TaskHandle_t handle;
+
+  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, &handle);
+
+  esp_task_wdt_init(3, true);
+  esp_task_wdt_add(handle);
 }
