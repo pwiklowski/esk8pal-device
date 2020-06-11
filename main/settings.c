@@ -11,6 +11,12 @@ const char *TAG = "Settings";
 #define KEY_WIFI_PASS "wifi_pass"
 #define KEY_MANUAL_RIDE_START "ride_start"
 
+#define KEY_DEVICE_KEY "device_key"
+#define KEY_WIFI_SSID_CLIENT "wifi_ssid_client"
+#define KEY_WIFI_PASS_CLIENT "wifi_pass_client"
+
+#define KEY_WIFI_CLIENT_UPLOAD_INTERVAL "wifi_client_upload_interval"
+
 void settings_load() {
   esp_err_t err;
   nvs_handle_t my_handle;
@@ -25,6 +31,18 @@ void settings_load() {
 
     len = 20;
     nvs_get_str(my_handle, KEY_WIFI_PASS, (char*) settings.wifi_pass, &len);
+
+    len = 20;
+    nvs_get_str(my_handle, KEY_WIFI_SSID_CLIENT, (char*) settings.wifi_ssid_client, &len);
+
+    len = 20;
+    nvs_get_str(my_handle, KEY_WIFI_PASS_CLIENT, (char*) settings.wifi_pass_client, &len);
+
+    len = 40;
+    nvs_get_str(my_handle, KEY_DEVICE_KEY, (char*) settings.device_key, &len);
+
+    nvs_get_u16(my_handle, KEY_WIFI_CLIENT_UPLOAD_INTERVAL, &settings.upload_interval);
+
     nvs_close(my_handle);
   }
 }
@@ -39,6 +57,12 @@ void settings_save() {
     nvs_set_u8(my_handle, KEY_MANUAL_RIDE_START, settings.manual_ride_start);
     nvs_set_str(my_handle, KEY_WIFI_SSID, (char*) settings.wifi_ssid);
     nvs_set_str(my_handle, KEY_WIFI_PASS, (char*) settings.wifi_pass);
+
+    nvs_set_str(my_handle, KEY_WIFI_SSID_CLIENT, (char*) settings.wifi_ssid_client);
+    nvs_set_str(my_handle, KEY_WIFI_PASS_CLIENT, (char*) settings.wifi_pass_client);
+    nvs_set_str(my_handle, KEY_DEVICE_KEY, (char*) settings.device_key);
+
+    nvs_set_u16(my_handle, KEY_WIFI_CLIENT_UPLOAD_INTERVAL, (char*) settings.upload_interval);
 
     err = nvs_commit(my_handle);
     if (err != ESP_OK){

@@ -47,6 +47,11 @@ struct Settings {
   uint8_t wifi_enabled;
   uint8_t wifi_ssid[21];
   uint8_t wifi_pass[21];
+
+  uint8_t device_key[41];
+  uint8_t wifi_ssid_client[21];
+  uint8_t wifi_pass_client[21];
+  uint16_t upload_interval;
 };
 
 #endif
