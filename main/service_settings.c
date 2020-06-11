@@ -98,6 +98,11 @@ static const uint16_t GATTS_CHAR_UUID_FREE_STORAGE  = 0xFD06;
 static const uint16_t GATTS_CHAR_UUID_TOTAL_STORAGE  = 0xFD07; 
 static const uint16_t GATTS_CHAR_UUID_TIME  = 0xFD08; 
 
+static const uint16_t GATTS_CHAR_UUID_DEVICE_KEY     = 0xFD09;
+static const uint16_t GATTS_CHAR_UUID_WIFI_SSID_CLIENT     = 0xFD0A;
+static const uint16_t GATTS_CHAR_UUID_WIFI_PASS_CLIENT     = 0xFD0B;
+static const uint16_t GATTS_CHAR_UUID_UPLOAD_INTERVAL     = 0xFD0C;
+
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint8_t char_prop_read_write          =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
@@ -196,6 +201,45 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     [IDX_CHAR_VAL_TIME]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TIME, ESP_GATT_PERM_WRITE,
       sizeof(time_data), sizeof(time_data), (uint8_t *)&time_data}},
+
+   
+    /* Characteristic Declaration */
+    [IDX_CHAR_DEVICE_KEY]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_DEVICE_KEY]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_DEVICE_KEY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(settings.device_key), sizeof(settings.device_key), (uint8_t *)settings.device_key}},
+
+
+      /* Characteristic Declaration */
+    [IDX_CHAR_WIFI_SSID_CLIENT]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_WIFI_SSID_CLIENT]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_SSID_CLIENT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(settings.wifi_ssid_client), sizeof(settings.wifi_ssid_client), (uint8_t *)settings.wifi_ssid_client}},
+
+    /* Characteristic Declaration */
+    [IDX_CHAR_WIFI_PASS_CLIENT]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_WIFI_PASS_CLIENT]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS_CLIENT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(settings.wifi_pass_client), sizeof(settings.wifi_pass_client), (uint8_t *)settings.wifi_pass_client}},
+
+    /* Characteristic Declaration */
+    [IDX_CHAR_WIFI_CLIENT_UPLOAD_INTERVAL]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_WIFI_CLIENT_UPLOAD_INTERVAL]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_UPLOAD_INTERVAL, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(settings.upload_interval), sizeof(settings.upload_interval), (uint8_t *)&settings.upload_interval}},
+
 };
 
 struct gatts_profile_inst init_settings_service() {
@@ -246,6 +290,29 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         settings.wifi_pass[len] = 0;
         settings_save();
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_PASS %s", settings.wifi_pass);
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID_CLIENT]) {
+        memcpy(settings.wifi_ssid_client, value, len);
+        settings.wifi_ssid_client[len] = 0;
+        settings_save();
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_SSID_CLIENT %s", settings.wifi_ssid_client);
+
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_PASS_CLIENT]) {
+        memcpy(settings.wifi_pass_client, value, len);
+        settings.wifi_pass_client[len] = 0;
+        settings_save();
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_PASS_CLIENT %s", settings.wifi_pass_client);
+
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_DEVICE_KEY]) {
+        memcpy(settings.device_key, value, len);
+        settings.device_key[len] = 0;
+        settings_save();
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_DEVICE_KEY %s", settings.device_key);
+
+    } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_CLIENT_UPLOAD_INTERVAL]) {
+        memcpy(&settings.upload_interval, value, 2);
+        settings_save();
+        ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_UPLOAD_INTERVAL %d", settings.upload_interval);
+
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_TIME]) {
         if (len != 6) return;
 
