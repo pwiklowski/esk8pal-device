@@ -13,6 +13,12 @@ typedef enum {
 } device_state_t;
 
 typedef enum {
+  WIFI_DISABLED,
+  WIFI_AP,
+  WIFI_CLIENT
+} wifi_state_t;
+
+typedef enum {
   MANUAL_START_DISABLED,
   MANUAL_START_ENABLED
 } manual_start_t;
@@ -44,7 +50,7 @@ struct CurrentState {
 
 struct Settings {
   uint8_t manual_ride_start;
-  uint8_t wifi_enabled;
+  wifi_state_t wifi_state;
   uint8_t wifi_ssid[21];
   uint8_t wifi_pass[21];
 

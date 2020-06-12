@@ -12,8 +12,10 @@
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
+#include "state.h"
 
 void wifi_init();
-void wifi_set_state(bool enable);
+void wifi_set_state(wifi_state_t state);
+wifi_state_t wifi_get_state();
 
 #endif

@@ -170,7 +170,7 @@ static const esp_gatts_attr_db_t gatt_db[SETTINGS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_WIFI_ENABLED]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_ENABLED, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(settings.wifi_enabled), sizeof(settings.wifi_enabled), (uint8_t *)&settings.wifi_enabled}},
+      sizeof(settings.wifi_state), sizeof(settings.wifi_state), (uint8_t *)&settings.wifi_state}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_FREE_STORAGE]      =
@@ -275,9 +275,9 @@ void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
         settings_save();
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_MANUAL_RIDE_START %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_ENABLED]) {
-        settings.wifi_enabled = value[0];
+        settings.wifi_state = value[0];
 
-        wifi_set_state(settings.wifi_enabled);
+        wifi_set_state(settings.wifi_state);
 
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_WIFI_ENABLED %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_WIFI_SSID]) {

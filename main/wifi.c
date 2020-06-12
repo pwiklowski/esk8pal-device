@@ -6,7 +6,7 @@ extern struct Settings settings;
 
 static const char *TAG = "WiFi";
 
-bool enabled = false;
+wifi_state_t current_state = WIFI_DISABLED;
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_id == WIFI_EVENT_AP_STACONNECTED) {
@@ -45,17 +45,26 @@ void wifi_init() {
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
 }
 
-void wifi_set_state(bool enable) {
-    if (enable) {
-        if (!enabled) {
+wifi_state_t wifi_get_state() {
+    return current_state;
+}
+
+void wifi_set_state(wifi_state_t state) {
+    if (state == WIFI_AP) {
+        if (current_state != WIFI_AP) {
             wifi_init_softap();
-            enabled = true;
+            current_state = WIFI_AP;
+        }
+    } else if (state == WIFI_CLIENT) {
+        if (current_state != WIFI_CLIENT) {
+            wifi_init_softap();
+            current_state = WIFI_CLIENT;
         }
     } else {
-        if (enabled) {
+        if (current_state != WIFI_DISABLED) {
             esp_wifi_disconnect();
             esp_wifi_stop();
-            enabled = false;
+            current_state = WIFI_DISABLED;
         }
     }
 }
