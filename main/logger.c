@@ -7,6 +7,7 @@
 #include "driver/sdspi_host.h"
 #include "sdmmc_cmd.h"
 #include "state.h"
+#include "logger.h"
 
 #include "gps.h"
 
@@ -22,7 +23,6 @@
 
 #define d2r (M_PI / 180.0)
 
-#define BASE_LOCATION "/sdcard/"
 #define NOT_ACTIVE_TIME_MS 1000*10
 #define LOG_INTERVAL 1000
 static const char *TAG = "SD";
@@ -295,5 +295,17 @@ void log_task(void* params) {
 }
 
 void log_init() {
+  log_init_sd_card();
+
+  FRESULT res = f_mkdir(LOGS_LOCATION);
+  if (res != FR_OK && res != FR_EXIST) {
+    ESP_LOGE(TAG, "Failed to create folder %s %d", LOGS_LOCATION, res);
+  }
+
+  res = f_mkdir(SYNCED_LOGS_LOCATION);
+  if (res != FR_OK && res != FR_EXIST) {
+    ESP_LOGE(TAG, "Failed to create folder %s %d", SYNCED_LOGS_LOCATION, res);
+  }
+
   xTaskCreate(log_task, "logger_task", 1024 * 6, NULL, configMAX_PRIORITIES, NULL);
 }

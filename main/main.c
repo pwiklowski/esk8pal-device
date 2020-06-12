@@ -109,7 +109,6 @@ void app_main(void) {
 
   settings_init();
 
-  log_init_sd_card();
   ble_init();
 
   init_gps();
