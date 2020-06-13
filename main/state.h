@@ -15,7 +15,8 @@ typedef enum {
 typedef enum {
   WIFI_DISABLED,
   WIFI_AP,
-  WIFI_CLIENT
+  WIFI_CLIENT,
+  WIFI_CLIENT_CONNECTED
 } wifi_state_t;
 
 typedef enum {

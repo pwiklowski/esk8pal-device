@@ -32,6 +32,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:%s", ip4addr_ntoa(&event->ip_info.ip));
         s_retry_num = 0;
+        current_state = WIFI_CLIENT_CONNECTED;
     }
 }
 
@@ -78,6 +79,7 @@ void wifi_init() {
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
 }
 
 wifi_state_t wifi_get_state() {
@@ -91,9 +93,8 @@ void wifi_set_state(wifi_state_t state) {
             current_state = WIFI_AP;
         }
     } else if (state == WIFI_CLIENT) {
-        if (current_state != WIFI_CLIENT) {
+        if (current_state != WIFI_CLIENT && current_state != WIFI_CLIENT_CONNECTED) {
             wifi_init_sta();
-            
             current_state = WIFI_CLIENT;
         }
     } else {
