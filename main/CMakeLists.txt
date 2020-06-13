@@ -1,1 +1,1 @@
-idf_component_register(SRCS "http_server.c" "wifi.c" "settings.c" "service_settings.c" "service_location.c" "service_battery.c" "power.c" "gps.c" "logger.c" "main.c" "gatt.c" "ads1115/ads1115.c" "ds3231/ds3231.c" INCLUDE_DIRS ".")
+idf_component_register(SRCS "http_server.c" "wifi.c" "settings.c" "service_settings.c" "service_location.c" "service_battery.c" "power.c" "gps.c" "logger.c" "main.c" "gatt.c" "ads1115/ads1115.c" "ds3231/ds3231.c" "uploader.c" INCLUDE_DIRS ".")

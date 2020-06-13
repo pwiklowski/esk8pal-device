@@ -33,6 +33,8 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include "uploader.h"
+
 struct CurrentState state;
 struct Settings settings;
 
@@ -110,14 +112,13 @@ void app_main(void) {
   settings_init();
 
   ble_init();
-
   init_gps();
-
-  power_sensor_init();
-
   log_init();
+  uploader_init();
 
   wifi_init();
+  power_sensor_init();
+
   const esp_pm_config_esp32_t pm = {
     .light_sleep_enable = true,
     .max_freq_mhz = 160,
