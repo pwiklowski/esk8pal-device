@@ -9,7 +9,7 @@
 #include "esp_http_client.h"
 #include "esp_tls.h"
 
-#define ESK8PAL_UPLOAD_URL "http://192.168.1.28:8080/ping"
+#define ESK8PAL_UPLOAD_URL "http://192.168.1.28:8080/upload"
 
 static const char* TAG = "uploader";
 
@@ -26,7 +26,7 @@ void uploader_sync() {
     } else{
       ESP_LOGI(TAG, "Skip uploading");
     }
-    vTaskDelay(20 * 1000/ portTICK_PERIOD_MS);
+    vTaskDelay(60 * 1000/ portTICK_PERIOD_MS);
   }
 }
 
@@ -63,8 +63,14 @@ bool uploader_upload_file(char* filename, size_t size) {
     return false;
   }
 
+  char request_url[100];
+
+  sprintf(request_url, "%s?key=%s", ESK8PAL_UPLOAD_URL, settings.device_key);
+
+  ESP_LOGI(TAG, "req url %s", request_url);
+
   esp_http_client_config_t config = {
-      .url = ESK8PAL_UPLOAD_URL,
+      .url = request_url,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -79,7 +85,7 @@ bool uploader_upload_file(char* filename, size_t size) {
 
   const size_t data_len = strlen(post_data_start1) + strlen(post_data_start2) + strlen(filename) + strlen(post_data_end) + size + 2;
 
-  esp_http_client_set_url(client, ESK8PAL_UPLOAD_URL);
+  esp_http_client_set_url(client, request_url);
   esp_http_client_set_method(client, HTTP_METHOD_POST);
 
   esp_http_client_set_header(client, "Content-Type", "multipart/form-data; boundary=bnd");
