@@ -41,6 +41,7 @@ void uploader_sync_files() {
   }
 
   char filename[270];
+  char synced_filename[280];
 
   for(;;) {
     res = f_readdir(&dir, &file);
@@ -50,6 +51,8 @@ void uploader_sync_files() {
 
     if (uploader_upload_file(filename, file.fsize)) {
       ESP_LOGI(TAG, "Synced file %s %d", file.fname, file.fsize);
+      sprintf(synced_filename, "%s%s/%s", BASE_LOCATION, SYNCED_LOGS_LOCATION, file.fname);
+      f_rename(filename, synced_filename);
     }
   }
 
