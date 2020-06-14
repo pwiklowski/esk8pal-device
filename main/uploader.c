@@ -30,6 +30,28 @@ void uploader_sync() {
   }
 }
 
+uint16_t uploader_count_files_to_be_uploaded() {
+  FRESULT res;
+  FILINFO file;
+  FF_DIR dir;
+  uint16_t count = 0;
+
+  if (f_opendir(&dir, LOGS_LOCATION) != FR_OK) {
+    ESP_LOGE(TAG, "Failed to create folder %s", LOGS_LOCATION);
+    return 0;
+  }
+
+  for(;;) {
+    res = f_readdir(&dir, &file);
+    if (res != FR_OK || file.fname[0] == 0) break;
+    count++;
+  }
+
+  f_closedir(&dir);
+
+  return count;
+}
+
 void uploader_sync_files() {
   FRESULT res;
   FILINFO file;
