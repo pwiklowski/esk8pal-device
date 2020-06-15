@@ -29,8 +29,8 @@ struct gatts_profile_inst gl_profile_tab[PROFILE_NUM];
 
 uint8_t adv_config_done = 0;
 esp_ble_adv_params_t adv_params = {
-    .adv_int_min        = 0x2000,
-    .adv_int_max        = 0x2000,
+    .adv_int_min        = 0x20,
+    .adv_int_max        = 0x20,
     .adv_type           = ADV_TYPE_IND,
     .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
     //.peer_addr            =

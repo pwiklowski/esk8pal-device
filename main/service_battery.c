@@ -34,6 +34,8 @@ uint16_t battery_notification_table[BATTERY_IDX_NB];
 
 static uint16_t connection_id;
 
+bool is_connected = false;
+
 uint8_t battery_service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value
@@ -266,10 +268,13 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             conn_params.timeout = 400;    // timeout = 400*10ms = 4000ms
             //start sent the update connection parameters to the peer device.
             esp_ble_gap_update_conn_params(&conn_params);
+
+            is_connected = true;
             break;
         case ESP_GATTS_DISCONNECT_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
             esp_ble_gap_start_advertising(&adv_params);
+            is_connected = false;
             break;
         case ESP_GATTS_CREAT_ATTR_TAB_EVT:{
             if (param->add_attr_tab.status != ESP_GATT_OK){
@@ -357,4 +362,8 @@ void state_update() {
             false
         );
     }
+}
+
+bool is_battery_service_connected() {
+    return is_connected;
 }

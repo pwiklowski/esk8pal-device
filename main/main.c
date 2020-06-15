@@ -34,6 +34,12 @@
 #include <sys/time.h>
 
 #include "uploader.h"
+#include "power.h"
+
+#include "esp_sleep.h"
+
+
+static const char* TAG = "main";
 
 struct CurrentState state;
 struct Settings settings;
@@ -101,6 +107,59 @@ void app_init_time() {
   ESP_LOGI("MAIN", "time %ld %d:%d:%d", now.tv_sec, time.tm_hour, time.tm_min, time.tm_sec);
 }
 
+bool can_go_to_sleep() {
+  return !uploader_is_task_running() && !is_in_driving_state() && 
+    !is_battery_service_connected() && wifi_get_state() == WIFI_DISABLED;
+}
+
+bool should_start_uploader_task(const int64_t* last_upload_attempt) {
+  uint16_t files_to_be_uploaded = uploader_count_files_to_be_uploaded();
+  bool is_attempt_allowed = (esp_timer_get_time() - *last_upload_attempt) > (settings.upload_interval * 60 * 1000 * 1000);
+
+  return files_to_be_uploaded > 0 && !uploader_is_task_running() && is_attempt_allowed;
+}
+
+void update_battery_details() {
+  power_up_module();
+
+  double voltage = read_voltage();
+  double current = read_current();
+  battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
+  battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
+
+  //ESP_LOGI(TAG, "voltage %f, current %f", voltage, current);
+  power_down_module();
+}
+
+void main_task() {
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  int64_t last_upload_attempt = 0;
+
+  while (1) {
+    if (!is_in_driving_state()) { 
+      update_battery_details();
+     
+      if (should_start_uploader_task(&last_upload_attempt)){
+        last_upload_attempt = esp_timer_get_time();
+
+        xTaskCreate(uploader_sync, "uploader_sync", 1024*6, NULL, configMAX_PRIORITIES, NULL);
+        vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
+      }
+
+      vTaskDelayUntil(&xLastWakeTime, 300 / portTICK_PERIOD_MS);
+
+      if (can_go_to_sleep()) {
+          ESP_LOGI(TAG, "go to sleep");
+          esp_sleep_enable_timer_wakeup(10000000);
+          esp_light_sleep_start();
+      }
+    } else {
+      vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
+    }
+  }
+}
+
 void app_main(void) {
   state.riding_state = STATE_PARKED;
   settings.manual_ride_start = MANUAL_START_DISABLED;
@@ -114,23 +173,11 @@ void app_main(void) {
   ble_init();
   init_gps();
   log_init();
-  uploader_init();
 
   wifi_init();
+
   power_sensor_init();
 
-  const esp_pm_config_esp32_t pm = {
-    .light_sleep_enable = true,
-    .max_freq_mhz = 160,
-    .min_freq_mhz = 80
-  };
-
-  ESP_ERROR_CHECK( esp_pm_configure(&pm) );
-
-  TaskHandle_t handle;
-
-  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, &handle);
-
-  esp_task_wdt_init(3, true);
-  esp_task_wdt_add(handle);
+  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, NULL);
+  xTaskCreate(main_task, "main_task", 1024*4, NULL, configMAX_PRIORITIES, NULL);
 }

@@ -15,19 +15,44 @@ static const char* TAG = "uploader";
 
 extern struct Settings settings;
 
-void uploader_init() {
-  xTaskCreate(uploader_sync, "uploader_sync_files", 1024*6, NULL, configMAX_PRIORITIES, NULL);
+bool is_task_running = false;
+
+bool uploader_is_task_running() {
+  return is_task_running;
+}
+
+bool uploader_wait_for_wifi() {
+  for(uint8_t i=0; i<5;i++) {
+    if (wifi_get_state() == WIFI_CLIENT_CONNECTED) {
+      return true;
+    }
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    ESP_LOGI(TAG, "waiting for wifi");
+  } 
+  return false;
 }
 
 void uploader_sync() {
-  while(1) {
-    if (wifi_get_state() == WIFI_CLIENT_CONNECTED) {
+  is_task_running = true;
+  uint16_t files_to_be_uploaded = uploader_count_files_to_be_uploaded();
+  ESP_LOGI(TAG, "start uploading %d ", files_to_be_uploaded);
+
+  if (files_to_be_uploaded > 0) {
+    wifi_set_state(WIFI_CLIENT);
+
+    if (uploader_wait_for_wifi()){
       uploader_sync_files();
-    } else{
-      ESP_LOGI(TAG, "Skip uploading");
+
+      vTaskDelay(5* 1000 / portTICK_PERIOD_MS);
+      ESP_LOGI(TAG, "uploading finished");
+    } else {
+      ESP_LOGI(TAG, "uploading failed");
     }
-    vTaskDelay(60 * 1000/ portTICK_PERIOD_MS);
+    wifi_set_state(WIFI_DISABLED);
   }
+
+  is_task_running = false;
+  vTaskDelete(NULL);
 }
 
 uint16_t uploader_count_files_to_be_uploaded() {
@@ -74,7 +99,9 @@ void uploader_sync_files() {
     if (uploader_upload_file(filename, file.fsize)) {
       ESP_LOGI(TAG, "Synced file %s %d", file.fname, file.fsize);
       sprintf(synced_filename, "%s%s/%s", BASE_LOCATION, SYNCED_LOGS_LOCATION, file.fname);
-      f_rename(filename, synced_filename);
+
+      res = f_rename(filename, synced_filename);
+      ESP_LOGI(TAG, "rename  %s %s %d ", filename, synced_filename, res);
     }
   }
 
