@@ -47,7 +47,7 @@ void log_generate_filename(char* name) {
   struct tm* time;
   time = gmtime(&t);
 
-  sprintf(name, "/sdcard/log.%d.%02d.%02d.%02d.%02d.%02d.log", (time->tm_year + 1900), time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+  sprintf(name, "%s/log.%d.%02d.%02d.%02d.%02d.%02d.log", BASE_LOCATION LOGS_LOCATION, (time->tm_year + 1900), time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
 }
 
 void log_init_sd_card() {
