@@ -100,7 +100,7 @@ void uploader_sync_files() {
       ESP_LOGI(TAG, "Synced file %s %d", file.fname, file.fsize);
       sprintf(synced_filename, "%s%s/%s", BASE_LOCATION, SYNCED_LOGS_LOCATION, file.fname);
 
-      res = f_rename(filename, synced_filename);
+      res = rename(filename, synced_filename);
       ESP_LOGI(TAG, "rename  %s %s %d ", filename, synced_filename, res);
     }
   }
