@@ -41,21 +41,10 @@
 
 static const char* TAG = "main";
 
-struct CurrentState state;
+
 struct Settings settings;
 
-bool is_in_driving_state() {
-  if (settings.manual_ride_start == MANUAL_START_ENABLED) {
-    return state.riding_state == STATE_RIDING;
-  } else {
-    return state.current.value > 0.5 || state.speed.value > 1.0; // TODO add condition when logs neeed to be collected
-  }
-}
 
-void set_device_state(device_state_t new_state) {
-  state.riding_state = new_state;
-  settings_set_value(IDX_CHAR_VAL_RIDING_STATE, 1, &new_state);
-}
 
 void main_led_notification() {
   gpio_pad_select_gpio(GPIO_NUM_22);
@@ -64,10 +53,10 @@ void main_led_notification() {
   while (1){
     uint16_t delay = 100;
     
-    if (state.riding_state == STATE_RIDING) {
+    if (state_get()->riding_state == STATE_RIDING) {
       delay = 500;
-    } else if (state.riding_state == STATE_PARKED) {
-      delay = 5000;
+    } else if (state_get()->riding_state == STATE_PARKED) {
+      delay = 1000;
     }
     
     gpio_set_level(GPIO_NUM_22, 0);
@@ -108,7 +97,7 @@ void app_init_time() {
 }
 
 bool can_go_to_sleep() {
-  return !uploader_is_task_running() && !is_in_driving_state() && 
+  return !uploader_is_task_running() && !state_is_in_driving_state() && 
     !is_battery_service_connected() && wifi_get_state() == WIFI_DISABLED;
 }
 
@@ -137,8 +126,7 @@ void main_task() {
   int64_t last_upload_attempt = 0;
 
   while (1) {
-    if (!is_in_driving_state()) { 
-      update_battery_details();
+    if (!state_is_in_driving_state()) { 
      
       if (should_start_uploader_task(&last_upload_attempt)){
         last_upload_attempt = esp_timer_get_time();
@@ -161,13 +149,12 @@ void main_task() {
 }
 
 void app_main(void) {
-  state.riding_state = STATE_PARKED;
+  state_set_device_state(STATE_PARKED);
   settings.manual_ride_start = MANUAL_START_DISABLED;
 
   i2c_init();
 
   app_init_time();
-
   settings_init();
 
   ble_init();

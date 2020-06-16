@@ -1,6 +1,9 @@
 #ifndef state_h
 #define state_h
 
+#include "stdint.h"
+#include <stdio.h>
+#include <stdbool.h>
 
 typedef union {
   double value;
@@ -9,7 +12,8 @@ typedef union {
 
 typedef enum {
   STATE_PARKED,
-  STATE_RIDING
+  STATE_RIDING,
+  STATE_CHARGING,
 } device_state_t;
 
 typedef enum {
@@ -43,7 +47,7 @@ struct CurrentState {
   uint8_t gps_fix_status;
   uint8_t gps_satelites_count;
 
-  uint8_t riding_state;
+  device_state_t riding_state;
 
   uint32_t free_storage;
   uint32_t total_storage;
@@ -60,5 +64,10 @@ struct Settings {
   uint8_t wifi_pass_client[21];
   uint16_t upload_interval;
 };
+
+struct CurrentState* state_get();
+bool state_is_in_driving_state();
+void state_set_device_state(device_state_t new_state);
+device_state_t state_get_device_state();
 
 #endif

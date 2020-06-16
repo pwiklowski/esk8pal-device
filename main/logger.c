@@ -32,11 +32,7 @@ static const char *TAG = "SD";
 #define PIN_NUM_CLK  14
 #define PIN_NUM_CS   13
 
-extern struct CurrentState state;
 extern struct Settings settings;
-
-extern bool is_in_driving_state();
-extern void set_device_state(device_state_t state);
 
 void log_generate_filename(char* name) {
 
@@ -102,13 +98,13 @@ void log_update_free_space() {
 	uint64_t tmp_total_bytes = (uint64_t)tot_sect * FF_SS_SDCARD;
 	uint64_t tmp_free_bytes = (uint64_t)fre_sect * FF_SS_SDCARD;
 
-  state.free_storage = tmp_free_bytes / (1024*1024);
-  state.total_storage =  tmp_total_bytes / (1024*1024);
+  state_get()->free_storage = tmp_free_bytes / (1024*1024);
+  state_get()->total_storage =  tmp_total_bytes / (1024*1024);
 
-  settings_set_value(IDX_CHAR_VAL_FREE_STORAGE, 4, (uint8_t*) &state.free_storage);
-  settings_set_value(IDX_CHAR_VAL_TOTAL_STORAGE, 4, (uint8_t*) &state.total_storage);
+  settings_set_value(IDX_CHAR_VAL_FREE_STORAGE, 4, (uint8_t*) &state_get()->free_storage);
+  settings_set_value(IDX_CHAR_VAL_TOTAL_STORAGE, 4, (uint8_t*) &state_get()->total_storage);
 
-	ESP_LOGI(TAG, "Free space %d/%d", state.free_storage, state.total_storage);
+	ESP_LOGI(TAG, "Free space %d/%d", state_get()->free_storage, state_get()->total_storage);
 }
 
 
@@ -137,32 +133,32 @@ void log_add_entry(char* name) {
   gettimeofday(&now, NULL);
 
   fprintf(f, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", 
-    state.riding_time,
+    state_get()->riding_time,
     now.tv_sec,
-    state.latitude.value,
-    state.longitude.value,
-    state.speed.value,
-    state.voltage.value,
-    state.current.value,
-    state.used_energy.value,
-    state.total_energy.value,
-    state.trip_distance.value,
-    state.altitude.value
+    state_get()->latitude.value,
+    state_get()->longitude.value,
+    state_get()->speed.value,
+    state_get()->voltage.value,
+    state_get()->current.value,
+    state_get()->used_energy.value,
+    state_get()->total_energy.value,
+    state_get()->trip_distance.value,
+    state_get()->altitude.value
   );
 
 
   ESP_LOGI(TAG, "%d,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%f", 
-    state.riding_time, 
+    state_get()->riding_time, 
     now.tv_sec,
-    state.latitude.value,
-    state.longitude.value,
-    state.speed.value,
-    state.voltage.value,
-    state.current.value,
-    state.used_energy.value,
-    state.total_energy.value,
-    state.trip_distance.value,
-    state.altitude.value
+    state_get()->latitude.value,
+    state_get()->longitude.value,
+    state_get()->speed.value,
+    state_get()->voltage.value,
+    state_get()->current.value,
+    state_get()->used_energy.value,
+    state_get()->total_energy.value,
+    state_get()->trip_distance.value,
+    state_get()->altitude.value
   );
 
   fclose(f);
@@ -192,24 +188,24 @@ void log_track_task() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint16_t measure_interval = 3000; //TODO add changing it based on current speed ?
 
-    while(state.gps_fix_status != 1) {
+    while(state_get()->gps_fix_status != 1) {
       vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
 
-    double pLatitude = state.latitude.value;
-    double pLongtitude = state.longitude.value;
+    double pLatitude = state_get()->latitude.value;
+    double pLongtitude = state_get()->longitude.value;
 
     vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
 
     double chunk;
 
     while (1) {
-        chunk = haversine_km(pLatitude, pLongtitude, state.latitude.value, state.longitude.value);
+        chunk = haversine_km(pLatitude, pLongtitude, state_get()->latitude.value, state_get()->longitude.value);
 
-        pLatitude = state.latitude.value;
-        pLongtitude = state.longitude.value;
+        pLatitude = state_get()->latitude.value;
+        pLongtitude = state_get()->longitude.value;
 
-        location_update_value(state.trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE, false);
+        location_update_value(state_get()->trip_distance.value + chunk, IDX_CHAR_VAL_TRIP_DISTANCE, false);
         
         vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
     }
@@ -235,7 +231,7 @@ void log_task(void* params) {
 
   while (1) {
     esp_pm_lock_release(pm_lock);
-    while(!is_in_driving_state()) { 
+    while(!state_is_in_driving_state()) { 
       vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
@@ -248,7 +244,7 @@ void log_task(void* params) {
 
     ESP_LOGI(TAG, "Start log %s", log_filename);
     uint32_t not_active_start_time = 0;
-    set_device_state(STATE_RIDING);
+    state_set_device_state(STATE_RIDING);
     log_update_free_space();
 
     xTaskCreate(log_track_task, "log_track_task", 1024*2, NULL, configMAX_PRIORITIES-1, &trackTaskHandle);
@@ -262,11 +258,11 @@ void log_task(void* params) {
     time_t start_time = log_get_current_time();
 
     while(1) { 
-      state.riding_time = log_get_current_time() - start_time;
+      state_get()->riding_time = log_get_current_time() - start_time;
 
       log_add_entry(log_filename);
 
-      if (!is_in_driving_state()) {
+      if (!state_is_in_driving_state()) {
         if (not_active_start_time == 0 && !settings.manual_ride_start ) {
           not_active_start_time = esp_log_timestamp();
           ESP_LOGI(TAG, "detected lack of activity ");
@@ -279,7 +275,7 @@ void log_task(void* params) {
 
       vTaskDelay(LOG_INTERVAL / portTICK_PERIOD_MS);
     }
-    set_device_state(STATE_PARKED);
+    state_set_device_state(STATE_PARKED);
     log_update_free_space();
 
     gps_enable_power_saving_mode();

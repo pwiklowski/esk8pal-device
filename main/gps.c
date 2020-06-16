@@ -19,7 +19,6 @@ static const int RX_BUF_SIZE = 1024;
 static const char *RX_TASK_TAG = "RX_TASK";
 
 extern struct CurrentState state;
-extern bool is_in_driving_state();
 
 esp_pm_lock_handle_t pm_lock;
 
@@ -168,7 +167,7 @@ void gps_rx_task() {
     uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
 
     while (1) {
-        while(!is_in_driving_state()) { 
+        while(!state_is_in_driving_state()) { 
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
 

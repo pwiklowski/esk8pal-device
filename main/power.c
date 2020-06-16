@@ -16,8 +16,6 @@
 #define AMPERE_PER_MS 1/(60*60*1000)
 #define CURRENT_NUM_SAMPLES 8
 
-extern bool is_in_driving_state();
-
 ads1115_t ads;
 
 double zero = 1.65;
@@ -63,7 +61,7 @@ void read_adc_data() {
     uint16_t iterator = 0;
 
     while (1) {
-        if (is_in_driving_state()) { 
+        if (state_is_in_driving_state()) { 
             power_up_module();
             current = read_current();
             mah += current * AMPERE_PER_MS * measure_interval;
