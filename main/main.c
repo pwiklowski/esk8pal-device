@@ -35,6 +35,7 @@
 
 #include "uploader.h"
 #include "power.h"
+#include "activity_detector.h"
 
 #include "esp_sleep.h"
 
@@ -117,6 +118,8 @@ void update_battery_details() {
   battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
 
   //ESP_LOGI(TAG, "voltage %f, current %f", voltage, current);
+  detect_activity(current);
+
   power_down_module();
 }
 
@@ -139,8 +142,12 @@ void main_task() {
 
       if (can_go_to_sleep()) {
           ESP_LOGI(TAG, "go to sleep");
-          esp_sleep_enable_timer_wakeup(10000000);
-          esp_light_sleep_start();
+
+          for (uint8_t i=0; i<10; i++) {
+            update_battery_details();
+            esp_sleep_enable_timer_wakeup(1 * 1000 * 1000);
+            esp_light_sleep_start();
+          }
       }
     } else {
       vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);

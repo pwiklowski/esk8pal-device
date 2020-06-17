@@ -267,9 +267,7 @@ void log_task(void* params) {
           not_active_start_time = esp_log_timestamp();
           ESP_LOGI(TAG, "detected lack of activity ");
         } else {
-          if (esp_log_timestamp() - not_active_start_time > NOT_ACTIVE_TIME_MS) {
-            break;
-          }
+          break;
         }
       }
 

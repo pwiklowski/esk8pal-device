@@ -7,6 +7,7 @@
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include "service_battery.h"
+#include "activity_detector.h"
 
 #include "driver/i2c.h"
 #include "ads1115/ads1115.h"
@@ -72,7 +73,8 @@ void read_adc_data() {
                 battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
                 battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
                 battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
-                ESP_LOGI("ADC", "v=%f c=%f", voltage, current);
+
+                detect_activity(current);
             }
             iterator++;
             vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);

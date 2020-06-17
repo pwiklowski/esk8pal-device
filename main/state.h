@@ -2,8 +2,10 @@
 #define state_h
 
 #include "stdint.h"
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 typedef union {
   double value;
@@ -23,10 +25,7 @@ typedef enum {
   WIFI_CLIENT_CONNECTED
 } wifi_state_t;
 
-typedef enum {
-  MANUAL_START_DISABLED,
-  MANUAL_START_ENABLED
-} manual_start_t;
+typedef enum { MANUAL_START_DISABLED, MANUAL_START_ENABLED } manual_start_t;
 
 struct CurrentState {
   DoubleCharacteristic current;
@@ -65,7 +64,7 @@ struct Settings {
   uint16_t upload_interval;
 };
 
-struct CurrentState* state_get();
+struct CurrentState *state_get();
 bool state_is_in_driving_state();
 void state_set_device_state(device_state_t new_state);
 device_state_t state_get_device_state();
