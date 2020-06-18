@@ -33,6 +33,12 @@ double read_current() {
     return -((current/CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY);
 }
 
+double read_current_short() {
+    ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
+    double current = ads1115_get_voltage(&ads);
+    return -((current- zero) / CURRENT_SENSOR_SENSIVITY);
+}
+
 void calibrate_current_sensor() {
     ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
     double current = 0;

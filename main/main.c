@@ -113,7 +113,7 @@ void update_battery_details() {
   power_up_module();
 
   double voltage = read_voltage();
-  double current = read_current();
+  double current = read_current_short();
   battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
   battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
 

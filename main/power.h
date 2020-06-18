@@ -7,6 +7,7 @@ void power_up_module();
 void power_down_module();
 
 double read_current();
+double read_current_short();
 double read_voltage();
 
 #endif
