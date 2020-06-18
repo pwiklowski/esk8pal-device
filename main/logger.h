@@ -10,5 +10,6 @@
 
 void log_init();
 void log_init_sd_card();
+bool log_is_logger_running();
 
 #endif

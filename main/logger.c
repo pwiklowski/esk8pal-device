@@ -34,6 +34,8 @@ static const char *TAG = "SD";
 
 extern struct Settings settings;
 
+bool is_logger_running = false;
+
 void log_generate_filename(char* name) {
 
   struct timeval now;
@@ -218,6 +220,10 @@ time_t log_get_current_time() {
   return now.tv_sec;
 }
 
+bool log_is_logger_running() {
+  return is_logger_running;
+}
+
 void log_task(void* params) {
   log_update_free_space();
   TaskHandle_t trackTaskHandle;
@@ -232,8 +238,9 @@ void log_task(void* params) {
   while (1) {
     esp_pm_lock_release(pm_lock);
     while(!state_is_in_driving_state()) { 
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      vTaskDelay(500 / portTICK_PERIOD_MS);
     }
+    is_logger_running = true;
 
     esp_pm_lock_acquire(pm_lock);
 
@@ -284,6 +291,7 @@ void log_task(void* params) {
 
     ESP_LOGI(TAG, "End log");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+    is_logger_running = false;
   }
   vTaskDelete(NULL);
 }

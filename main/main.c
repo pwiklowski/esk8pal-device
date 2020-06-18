@@ -98,8 +98,11 @@ void app_init_time() {
 }
 
 bool can_go_to_sleep() {
-  return !uploader_is_task_running() && !state_is_in_driving_state() && 
-    !is_battery_service_connected() && wifi_get_state() == WIFI_DISABLED;
+  return !uploader_is_task_running() &&
+    !state_is_in_driving_state() &&
+    !log_is_logger_running() &&
+    !is_battery_service_connected() &&
+    wifi_get_state() == WIFI_DISABLED;
 }
 
 bool should_start_uploader_task(const int64_t* last_upload_attempt) {
