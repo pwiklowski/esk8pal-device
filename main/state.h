@@ -46,7 +46,7 @@ struct CurrentState {
   uint8_t gps_fix_status;
   uint8_t gps_satelites_count;
 
-  device_state_t riding_state;
+  uint8_t riding_state;
 
   uint32_t free_storage;
   uint32_t total_storage;
