@@ -268,7 +268,9 @@ void set_time(int year, int month, int day, int hour, int min, int sec) {
 void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {
     ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state %d %d", handle, len);
     if (handle == settings_handle_table[IDX_CHAR_VAL_RIDING_STATE]) {
-        state.riding_state = value[0];
+        if (settings.manual_ride_start) {
+          state_set_device_state(value[0]);
+        }
         ESP_LOGI(GATTS_TABLE_TAG, "settings_set_state IDX_CHAR_VAL_RIDING_STATE %d", value[0]);
     } else if (handle == settings_handle_table[IDX_CHAR_VAL_MANUAL_RIDE_START]) {
         settings.manual_ride_start = value[0];
