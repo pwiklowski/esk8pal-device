@@ -36,40 +36,12 @@
 #include "uploader.h"
 #include "power.h"
 #include "activity_detector.h"
-
 #include "esp_sleep.h"
 
 
 static const char* TAG = "main";
-
-
 struct Settings settings;
 
-
-
-void main_led_notification() {
-  gpio_pad_select_gpio(GPIO_NUM_22);
-  gpio_set_direction(GPIO_NUM_22, GPIO_MODE_OUTPUT);
-
-  while (1){
-    uint16_t delay = 100;
-    
-    if (state_get()->riding_state == STATE_RIDING) {
-      delay = 500;
-    } else if (state_get()->riding_state == STATE_PARKED) {
-      delay = 1000;
-    }
-    
-    gpio_set_level(GPIO_NUM_22, 0);
-    vTaskDelay(50/ portTICK_PERIOD_MS);
-    gpio_set_level(GPIO_NUM_22, 1);
-    vTaskDelay(delay/ portTICK_PERIOD_MS);
-
-    state_update();
-
-    esp_task_wdt_reset();
-  }
-}
 
 esp_err_t i2c_init() {
     int i2c_master_port = I2C_NUM_0;
@@ -130,6 +102,9 @@ void main_task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   int64_t last_upload_attempt = 0;
+  gpio_pad_select_gpio(GPIO_NUM_22);
+  gpio_set_direction(GPIO_NUM_22, GPIO_MODE_OUTPUT);
+
 
   while (1) {
     if (!state_is_in_driving_state()) { 
@@ -141,6 +116,9 @@ void main_task() {
         vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
       }
 
+      gpio_set_level(GPIO_NUM_22, 0);
+      vTaskDelay(20/ portTICK_PERIOD_MS);
+      gpio_set_level(GPIO_NUM_22, 1);
       vTaskDelayUntil(&xLastWakeTime, 300 / portTICK_PERIOD_MS);
 
       if (can_go_to_sleep()) {
@@ -152,8 +130,14 @@ void main_task() {
             esp_light_sleep_start();
           }
       }
+      update_battery_details();
+      state_update();
     } else {
-      vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
+      state_update();
+      vTaskDelayUntil(&xLastWakeTime, 900 / portTICK_PERIOD_MS);
+      gpio_set_level(GPIO_NUM_22, 0);
+      vTaskDelayUntil(&xLastWakeTime, 100/ portTICK_PERIOD_MS);
+      gpio_set_level(GPIO_NUM_22, 1);
     }
   }
 }
@@ -175,6 +159,6 @@ void app_main(void) {
 
   power_sensor_init();
 
-  xTaskCreate(main_led_notification, "main_led_notification", 1024, NULL, configMAX_PRIORITIES, NULL);
+
   xTaskCreate(main_task, "main_task", 1024*4, NULL, configMAX_PRIORITIES, NULL);
 }
