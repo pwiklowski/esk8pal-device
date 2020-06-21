@@ -192,21 +192,7 @@ void state_gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t
     break;
   case ESP_GATTS_CONNECT_EVT:
     ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
-    esp_log_buffer_hex(GATTS_TABLE_TAG, param->connect.remote_bda, 6);
-
     connection_id = param->connect.conn_id;
-
-    esp_ble_conn_update_params_t conn_params = {0};
-    memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
-    /* For the iOS system, please refer to Apple official documents about the
-     * BLE connection parameters restrictions. */
-    conn_params.latency = 0;
-    conn_params.max_int = 0x20; // max_int = 0x20*1.25ms = 40ms
-    conn_params.min_int = 0x10; // min_int = 0x10*1.25ms = 20ms
-    conn_params.timeout = 400;  // timeout = 400*10ms = 4000ms
-    // start sent the update connection parameters to the peer device.
-    esp_ble_gap_update_conn_params(&conn_params);
-
     is_state_connected = true;
     break;
   case ESP_GATTS_DISCONNECT_EVT:

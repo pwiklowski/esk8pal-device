@@ -34,7 +34,7 @@ void detect_activity(double current) {
 
         if (idle_start_time == 0) {
           idle_start_time = xTaskGetTickCount();
-        } else{
+        } else {
           ESP_LOGI(TAG, "idle detected %d", xTaskGetTickCount() - idle_start_time);
           if ((xTaskGetTickCount() - idle_start_time) > CONFIG_IDLE_TIME_TO_GO_PARKED * 1000) {
             state_set_device_state(STATE_PARKED);

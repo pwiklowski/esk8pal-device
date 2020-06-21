@@ -72,24 +72,20 @@ void app_init_time() {
   struct timeval now = {.tv_sec = t};
   settimeofday(&now, NULL);
 
-  ESP_LOGI("MAIN", "time %ld %d:%d:%d", now.tv_sec, time.tm_hour, time.tm_min,
-           time.tm_sec);
+  ESP_LOGI("MAIN", "time %ld %d:%d:%d", now.tv_sec, time.tm_hour, time.tm_min, time.tm_sec);
 }
 
 bool can_go_to_sleep() {
-  return !uploader_is_task_running() && !state_is_in_driving_state() &&
-         !log_is_logger_running() && !is_battery_service_connected() &&
-         !log_is_charging_running() &&
-         wifi_get_state() == WIFI_DISABLED;
+  return !uploader_is_task_running() && !state_is_in_driving_state() && !log_is_logger_running() &&
+         !is_battery_service_connected() && !log_is_charging_running() && wifi_get_state() == WIFI_DISABLED;
 }
 
 bool should_start_uploader_task(const int64_t *last_upload_attempt) {
   uint16_t files_to_be_uploaded = uploader_count_files_to_be_uploaded();
-  bool is_attempt_allowed = (esp_timer_get_time() - *last_upload_attempt) >
-                            (settings.upload_interval * 60 * 1000 * 1000);
+  bool is_attempt_allowed =
+      (esp_timer_get_time() - *last_upload_attempt) > (settings.upload_interval * 60 * 1000 * 1000);
 
-  return files_to_be_uploaded > 0 && !uploader_is_task_running() &&
-         is_attempt_allowed;
+  return files_to_be_uploaded > 0 && !uploader_is_task_running() && is_attempt_allowed;
 }
 
 void update_battery_details() {
@@ -119,8 +115,7 @@ void main_task() {
       if (should_start_uploader_task(&last_upload_attempt)) {
         last_upload_attempt = esp_timer_get_time();
 
-        xTaskCreate(uploader_sync, "uploader_sync", 1024 * 6, NULL,
-                    configMAX_PRIORITIES, NULL);
+        xTaskCreate(uploader_sync, "uploader_sync", 1024 * 6, NULL, configMAX_PRIORITIES, NULL);
         vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
       }
 
@@ -174,6 +169,5 @@ void app_main(void) {
 
   power_sensor_init();
 
-  xTaskCreate(main_task, "main_task", 1024 * 4, NULL, configMAX_PRIORITIES,
-              NULL);
+  xTaskCreate(main_task, "main_task", 1024 * 4, NULL, configMAX_PRIORITIES, NULL);
 }
