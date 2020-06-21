@@ -1,5 +1,9 @@
 #ifndef uploader_h
-#define uplaoder_h
+#define uploader_h
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 void uploader_init();
 void uploader_sync_files();

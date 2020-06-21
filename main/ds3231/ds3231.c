@@ -2,7 +2,7 @@
 #include "driver/i2c.h"
 #include "esp_log.h"
 #include <string.h>
-#include <time.h>
+
 
 #define I2CDEV_TIMEOUT 1000
 
@@ -99,7 +99,7 @@ esp_err_t ds3231_get_time(struct tm *time) {
       time->tm_hour += 12;
   } else
     time->tm_hour = bcd2dec(data[2]); /* 24H */
-    
+
   time->tm_wday = bcd2dec(data[3]) - 1;
   time->tm_mday = bcd2dec(data[4]);
   time->tm_mon = bcd2dec(data[5] & DS3231_MONTH_MASK) - 1;

@@ -1,6 +1,9 @@
 #ifndef DS3231_H
 #define DS3231_H
 
+#include <time.h>
+#include "esp_err.h"
+
 #define DS3231_ADDR 0x68 //!< I2C address
 
 #define DS3231_STAT_OSCILLATOR 0x80
