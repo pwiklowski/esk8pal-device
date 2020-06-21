@@ -23,6 +23,7 @@
 
 #define d2r (M_PI / 180.0)
 
+#define LOG_CHARGING_INTERVAL 1000
 #define NOT_ACTIVE_TIME_MS 1000*10
 #define LOG_INTERVAL 1000
 static const char *TAG = "SD";
@@ -35,6 +36,7 @@ static const char *TAG = "SD";
 extern struct Settings settings;
 
 bool is_logger_running = false;
+bool is_charging_running = false;
 
 void log_generate_filename(char* name) {
 
@@ -46,6 +48,10 @@ void log_generate_filename(char* name) {
   time = gmtime(&t);
 
   sprintf(name, "%s/log.%d.%02d.%02d.%02d.%02d.%02d.log", BASE_LOCATION LOGS_LOCATION, (time->tm_year + 1900), time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+}
+
+void log_deinit_sd_card() {
+  esp_vfs_fat_sdmmc_unmount();
 }
 
 void log_init_sd_card() {
@@ -310,4 +316,55 @@ void log_init() {
   }
 
   xTaskCreate(log_task, "logger_task", 1024 * 6, NULL, configMAX_PRIORITIES, NULL);
+}
+
+
+void log_generate_filename_for_charging_log(char* name) {
+
+  struct timeval now;
+  gettimeofday(&now, NULL);
+
+  time_t t =  (time_t) now.tv_sec;
+  struct tm* time;
+  time = gmtime(&t);
+
+  sprintf(name, "%s/charge.%d.%02d.%02d.%02d.%02d.%02d.log", BASE_LOCATION LOGS_LOCATION, (time->tm_year + 1900), time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+}
+
+bool log_is_charging_running() { return is_charging_running; }
+
+void log_charging_task(void *params) {
+  log_update_free_space();
+  TaskHandle_t trackTaskHandle;
+
+  is_charging_running = true;
+
+  char log_filename[40];
+  log_generate_filename(log_filename);
+  log_add_header(log_filename);
+
+  ESP_LOGI(TAG, "Start charging log %s", log_filename);
+
+  state_update();
+
+  time_t start_time = log_get_current_time();
+
+  while (1) {
+    state_get()->riding_time = log_get_current_time() - start_time;
+
+    log_add_entry(log_filename);
+
+    if (!state_is_in_charging_state()) {
+      break;
+    }
+    state_update();
+    vTaskDelay(LOG_CHARGING_INTERVAL / portTICK_PERIOD_MS);
+  }
+  log_update_free_space();
+
+  state_update();
+
+  ESP_LOGI(TAG, "End charging log");
+  is_charging_running = false;
+  vTaskDelete(NULL);
 }

@@ -84,6 +84,21 @@ void read_adc_data() {
             }
             iterator++;
             vTaskDelayUntil(&xLastWakeTime, measure_interval / portTICK_PERIOD_MS);
+        } else if (state_is_in_charging_state()) {
+            power_up_module();
+            iterator = 0;
+
+            current = read_current();
+            mah += current * AMPERE_PER_MS * measure_interval;
+            voltage = read_voltage();
+
+            battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
+            battery_update_value(voltage, IDX_CHAR_VAL_VOLTAGE, false);
+            battery_update_value(mah, IDX_CHAR_VAL_USED_ENERGY, false);
+
+            detect_activity(current);
+
+            vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
         } else {
             iterator = 0;
             vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);

@@ -1,11 +1,11 @@
 #ifndef state_h
 #define state_h
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "stdint.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
 typedef union {
   double value;
@@ -18,12 +18,7 @@ typedef enum {
   STATE_CHARGING,
 } device_state_t;
 
-typedef enum {
-  WIFI_DISABLED,
-  WIFI_AP,
-  WIFI_CLIENT,
-  WIFI_CLIENT_CONNECTED
-} wifi_state_t;
+typedef enum { WIFI_DISABLED, WIFI_AP, WIFI_CLIENT, WIFI_CLIENT_CONNECTED } wifi_state_t;
 
 typedef enum { MANUAL_START_DISABLED, MANUAL_START_ENABLED } manual_start_t;
 
@@ -66,6 +61,7 @@ struct Settings {
 
 struct CurrentState *state_get();
 bool state_is_in_driving_state();
+bool state_is_in_charging_state();
 void state_set_device_state(device_state_t new_state);
 device_state_t state_get_device_state();
 

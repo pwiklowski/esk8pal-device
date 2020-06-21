@@ -71,6 +71,7 @@ void app_init_time() {
 bool can_go_to_sleep() {
   return !uploader_is_task_running() && !state_is_in_driving_state() &&
          !log_is_logger_running() && !is_battery_service_connected() &&
+         !log_is_charging_running() &&
          wifi_get_state() == WIFI_DISABLED;
 }
 
@@ -105,7 +106,7 @@ void main_task() {
   gpio_set_direction(GPIO_NUM_22, GPIO_MODE_OUTPUT);
 
   while (1) {
-    if (!state_is_in_driving_state()) {
+    if (!state_is_in_driving_state() && !state_is_in_charging_state()) {
 
       if (should_start_uploader_task(&last_upload_attempt)) {
         last_upload_attempt = esp_timer_get_time();
