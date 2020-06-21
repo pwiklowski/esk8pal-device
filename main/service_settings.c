@@ -15,6 +15,7 @@
 #include "state.h"
 #include "settings.h"
 #include "wifi.h"
+#include "power.h"
 
 #include <time.h>
 #include <sys/time.h>
