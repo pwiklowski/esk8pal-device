@@ -158,7 +158,6 @@ void app_init_power_module_control_pin() {
 
 void app_main(void) {
   state_set_device_state(STATE_PARKED);
-  settings.manual_ride_start = MANUAL_START_DISABLED;
 
   app_init_power_module_control_pin();
 
