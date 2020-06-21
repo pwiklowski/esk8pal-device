@@ -119,7 +119,7 @@ void log_update_free_space() {
 void log_add_header(char* name) {
   FILE *f = fopen(name, "a");
   if (f == NULL) {
-    ESP_LOGE(TAG, "Failed to open file for writing");
+    ESP_LOGE(TAG, "Failed to open file for writing %s", name);
     log_init_sd_card();
     return;
   }
@@ -132,7 +132,7 @@ void log_add_header(char* name) {
 void log_add_entry(char* name) {
   FILE *f = fopen(name, "a");
   if (f == NULL) {
-    ESP_LOGE(TAG, "Failed to open file for writing");
+    ESP_LOGE(TAG, "Failed to open file for writing %s", name);
     log_init_sd_card();
     return;
   }
@@ -250,7 +250,7 @@ void log_task(void* params) {
 
     esp_pm_lock_acquire(pm_lock);
 
-    char log_filename[40];
+    char log_filename[60];
     log_generate_filename(log_filename);
 
     log_add_header(log_filename);
@@ -339,7 +339,7 @@ void log_charging_task(void *params) {
 
   is_charging_running = true;
 
-  char log_filename[40];
+  char log_filename[60];
   log_generate_filename(log_filename);
   log_add_header(log_filename);
 
