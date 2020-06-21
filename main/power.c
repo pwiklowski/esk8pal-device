@@ -12,7 +12,7 @@
 #include "driver/i2c.h"
 #include "ads1115/ads1115.h"
 
-#define VOLTAGE_DIVIDER (1+12)/1
+#define VOLTAGE_DIVIDER 22.53
 #define CURRENT_SENSOR_SENSIVITY 0.026666666667
 #define AMPERE_PER_MS 1/(60*60*1000)
 #define CURRENT_NUM_SAMPLES 8
