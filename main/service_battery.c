@@ -90,8 +90,6 @@ static const uint16_t GATTS_CHAR_UUID_CURRENT       = 0xFF02;
 static const uint16_t GATTS_CHAR_UUID_USED_ENERGY   = 0xFF03;
 static const uint16_t GATTS_CHAR_UUID_TOTAL_ENERGY  = 0xFF04;
 
-static const uint16_t GATTS_CHAR_UUID_STATE  = 0xFFFF;
-
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
@@ -155,19 +153,6 @@ static const esp_gatts_attr_db_t gatt_db[BATTERY_IDX_NB] = {
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(state.total_energy.bytes), (uint8_t *)state.total_energy.bytes}},
     /* Client Characteristic Configuration Descriptor */
     [IDX_CHAR_CFG_TOTAL_ENERGY]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
-
-    /* Characteristic Declaration */
-    [IDX_CHAR_STATE]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_STATE]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_STATE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(state), sizeof(state), (uint8_t *)&state}},
-    /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_STATE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(config_descriptor), (uint8_t *)config_descriptor}},
 
@@ -237,8 +222,6 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                     battery_update_value(state.used_energy.value, IDX_CHAR_VAL_USED_ENERGY, true);
                 } else if (index == IDX_CHAR_CFG_TOTAL_ENERGY) {
                     battery_update_value(state.total_energy.value, IDX_CHAR_VAL_TOTAL_ENERGY, true);
-                } else if (index == IDX_CHAR_CFG_STATE) {
-                    state_update();
                 }
             }
             break;
@@ -346,19 +329,6 @@ void battery_update_value(double value, uint16_t characteristic_index, bool forc
             battery_handle_table[characteristic_index],
             sizeof(characteristic.bytes),
             (uint8_t *)characteristic.bytes,
-            false
-        );
-    }
-}
-
-void state_update() {
-  if (battery_notification_table[IDX_CHAR_CFG_STATE] == 0x0001) {
-        esp_ble_gatts_send_indicate(
-            battery_profile_tab.gatts_if,
-            connection_id,
-            battery_handle_table[IDX_CHAR_VAL_STATE],
-            sizeof(state),
-            (uint8_t *)&state,
             false
         );
     }

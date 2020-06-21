@@ -13,6 +13,7 @@
 #include "service_battery.h"
 #include "service_location.h"
 #include "service_settings.h"
+#include "service_state.h"
 
 #include "sdkconfig.h"
 
@@ -22,6 +23,7 @@ enum {
  BATTERY_SERVICE_ID,
  LOCATION_SERVICE_ID,
  SETTINGS_SERVICE_ID,
+ STATE_SERVICE_ID,
  PROFILE_NUM
 };
 
@@ -141,6 +143,7 @@ void ble_init() {
     gl_profile_tab[BATTERY_SERVICE_ID] = init_battery_service();
     gl_profile_tab[LOCATION_SERVICE_ID] = init_location_service();
     gl_profile_tab[SETTINGS_SERVICE_ID] = init_settings_service();
+    gl_profile_tab[STATE_SERVICE_ID] = init_state_service();
 
     ret = esp_ble_gatts_register_callback(gatts_event_handler);
     if (ret){
@@ -167,6 +170,13 @@ void ble_init() {
         ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
         return;
     }
+
+    ret = esp_ble_gatts_app_register(STATE_SERVICE_ID);
+    if (ret){
+        ESP_LOGE(GATTS_TAG, "gatts app register error, error code = %x", ret);
+        return;
+    }
+
 
     esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(500);
     if (local_mtu_ret){
