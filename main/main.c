@@ -58,7 +58,15 @@ esp_err_t i2c_init() {
 void app_init_time() {
   struct tm time;
 
+  bool isPowered = power_is_module_powered();
+
+  if (!isPowered) {
+    power_up_module();
+  }
   ds3231_get_time(&time);
+  if (!isPowered) {
+    power_down_module();
+  }
 
   time_t t = mktime(&time);
   struct timeval now = {.tv_sec = t};
@@ -142,9 +150,17 @@ void main_task() {
   }
 }
 
+void app_init_power_module_control_pin() {
+  gpio_pad_select_gpio(POWER_MODLE_GPIO);
+  gpio_set_direction(POWER_MODLE_GPIO, GPIO_MODE_OUTPUT);
+  gpio_set_pull_mode(POWER_MODLE_GPIO, GPIO_PULLUP_PULLDOWN);
+}
+
 void app_main(void) {
   state_set_device_state(STATE_PARKED);
   settings.manual_ride_start = MANUAL_START_DISABLED;
+
+  app_init_power_module_control_pin();
 
   i2c_init();
 

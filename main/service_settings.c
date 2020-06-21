@@ -262,7 +262,15 @@ void set_time(int year, int month, int day, int hour, int min, int sec) {
     struct timeval now = { .tv_sec = t };
     settimeofday(&now, NULL);
 
+    bool isPowered = power_is_module_powered();
+
+    if (!isPowered) {
+      power_up_module();
+    }
     ds3231_set_time(&tm);
+    if (!isPowered) {
+      power_down_module();
+    }
 }
 
 void settings_set_state(uint16_t handle, uint8_t* value, uint16_t len) {

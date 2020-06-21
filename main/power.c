@@ -23,7 +23,6 @@ double zero = 1.65;
 
 
 double read_current() {
-
     ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
     double current = 0;
     for (uint8_t i=0; i<CURRENT_NUM_SAMPLES; i++) { 
@@ -106,19 +105,11 @@ void read_adc_data() {
     }
 }
 
-void power_up_module() {
-    gpio_set_level(GPIO_NUM_27, 0);
-}
-
-void power_down_module() {
-    gpio_set_level(GPIO_NUM_27, 1);
-}
+void power_up_module() { gpio_set_level(POWER_MODLE_GPIO, 0); }
+void power_down_module() { gpio_set_level(POWER_MODLE_GPIO, 1); }
+bool power_is_module_powered() { return gpio_get_level(POWER_MODLE_GPIO); }
 
 void power_sensor_init() {
-    gpio_pad_select_gpio(GPIO_NUM_27);
-    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
-    gpio_set_pull_mode(GPIO_NUM_27, GPIO_PULLUP_PULLDOWN);
-
     ads = ads1115_config(I2C_NUM_0, 0x48);
 
     ads1115_set_pga(&ads, ADS1115_FSR_2_048);
