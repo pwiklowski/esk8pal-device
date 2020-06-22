@@ -129,6 +129,9 @@ void main_task() {
 
         for (uint8_t i = 0; i < 10; i++) {
           update_battery_details();
+          if (!can_go_to_sleep()) {
+            break;
+          }
           esp_sleep_enable_timer_wakeup(1 * 1000 * 1000);
           esp_light_sleep_start();
         }
