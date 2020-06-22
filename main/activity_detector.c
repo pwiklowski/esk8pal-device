@@ -4,8 +4,8 @@
 static const char *TAG = "activity_detector";
 extern struct Settings settings;
 
-#define CONFIG_RIDING_CURRENT_LEVEL 0.2
-#define CONFIG_CHARGING_CURRENT_LEVEL -0.2
+#define CONFIG_RIDING_CURRENT_LEVEL 0.1
+#define CONFIG_CHARGING_CURRENT_LEVEL -0.1
 #define CONFIG_IDLE_TIME_TO_GO_PARKED 30
 
 uint32_t idle_start_time = 0;
