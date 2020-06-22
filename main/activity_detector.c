@@ -24,8 +24,19 @@ void detect_activity(double current) {
 
     if (state_get_device_state() == STATE_CHARGING) {
       if (current > CONFIG_CHARGING_CURRENT_LEVEL) {
-        ESP_LOGI(TAG, "charging finished");
-        state_set_device_state(STATE_PARKED);
+
+        if (idle_start_time == 0) {
+          idle_start_time = xTaskGetTickCount();
+        } else {
+          ESP_LOGI(TAG, "idle detected %d", xTaskGetTickCount() - idle_start_time);
+          if ((xTaskGetTickCount() - idle_start_time) > CONFIG_IDLE_TIME_TO_GO_PARKED * 1000) {
+            ESP_LOGI(TAG, "charging finished");
+            state_set_device_state(STATE_PARKED);
+            idle_start_time = 0;
+          }
+        }
+      } else {
+        idle_start_time = 0;
       }
     }
 
