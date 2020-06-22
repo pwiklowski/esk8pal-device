@@ -61,6 +61,7 @@ void read_adc_data() {
   double current = 0;
 
   uint16_t measure_interval = 50;
+  uint16_t charge_measure_interval = 100;
 
   uint16_t ticks_per_second = 1000 / measure_interval;
   uint16_t iterator = 0;
@@ -87,7 +88,7 @@ void read_adc_data() {
       iterator = 0;
 
       current = read_current();
-      mah += current * AMPERE_PER_MS * measure_interval;
+      mah += current * AMPERE_PER_MS * charge_measure_interval;
       voltage = read_voltage();
 
       battery_update_value(current, IDX_CHAR_VAL_CURRENT, false);
@@ -96,9 +97,10 @@ void read_adc_data() {
 
       detect_activity(current);
 
-      vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
+      vTaskDelayUntil(&xLastWakeTime, charge_measure_interval / portTICK_PERIOD_MS);
     } else {
       iterator = 0;
+      mah = 0;
       vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
     }
   }
