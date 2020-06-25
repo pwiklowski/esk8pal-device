@@ -9,7 +9,11 @@
 #include "esp_http_client.h"
 #include "esp_tls.h"
 
-#define ESK8PAL_UPLOAD_URL "http://192.168.1.28:8080/upload"
+#define ESK8PAL_UPLOAD_HOST_URL "esk8pal.wiklosoft.com"
+#define ESK8PAL_UPLOAD_PATH "/api/upload"
+
+extern const char root_cert_pem_start[] asm("_binary_root_cert_pem_start");
+extern const char root_cert_pem_end[] asm("_binary_root_cert_pem_end");
 
 static const char *TAG = "uploader";
 
@@ -117,12 +121,15 @@ bool uploader_upload_file(char *filename, size_t size) {
 
   char request_url[100];
 
-  sprintf(request_url, "%s?key=%s", ESK8PAL_UPLOAD_URL, settings.device_key);
+  sprintf(request_url, "%s?key=%s", ESK8PAL_UPLOAD_PATH, settings.device_key);
 
   ESP_LOGI(TAG, "req url %s", request_url);
 
   esp_http_client_config_t config = {
-      .url = request_url,
+      .host = ESK8PAL_UPLOAD_HOST_URL,
+      .path = ESK8PAL_UPLOAD_PATH,
+      .transport_type = HTTP_TRANSPORT_OVER_SSL,
+      .cert_pem = root_cert_pem_start,
   };
   esp_http_client_handle_t client = esp_http_client_init(&config);
 
