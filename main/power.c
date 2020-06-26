@@ -31,6 +31,16 @@ double read_current() {
   return -((current / CURRENT_NUM_SAMPLES - zero) / CURRENT_SENSOR_SENSIVITY);
 }
 
+double read_current_samples(uint16_t samples) {
+  ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
+  double current = 0;
+  for (uint8_t i = 0; i < samples; i++) {
+    current += ads1115_get_voltage(&ads);
+  }
+
+  return -((current / samples - zero) / CURRENT_SENSOR_SENSIVITY);
+}
+
 double read_current_short() {
   ads1115_set_mux(&ads, ADS1115_MUX_1_GND);
   double current = ads1115_get_voltage(&ads);
@@ -87,7 +97,7 @@ void read_adc_data() {
       power_up_module();
       iterator = 0;
 
-      current = read_current();
+      current = read_current_samples(64);
       mah += current * AMPERE_PER_MS * charge_measure_interval;
       voltage = read_voltage();
 
