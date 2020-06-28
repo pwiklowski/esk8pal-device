@@ -12,6 +12,7 @@
 #include "esp_gatts_api.h"
 #include "gatt.h"
 #include "service_state.h"
+#include "state.h"
 
 #define GATTS_TABLE_TAG "StateService"
 
@@ -41,6 +42,8 @@ uint8_t state_service_uuid[16] = {
     0xfd, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
 };
 
+extern struct CurrentStateAdvertisment adv_state;
+
 /* The length of adv data must be less than 31 bytes */
 esp_ble_adv_data_t state_adv_data = {
     .set_scan_rsp = false,
@@ -51,8 +54,8 @@ esp_ble_adv_data_t state_adv_data = {
     .max_interval = 0x0010, // slave connection max interval, Time =
                             // max_interval * 1.25 msec
     .appearance = 0x00,
-    .manufacturer_len = 0,       // TEST_MANUFACTURER_DATA_LEN,
-    .p_manufacturer_data = NULL, // test_manufacturer,
+    .manufacturer_len = sizeof(adv_state), // TEST_MANUFACTURER_DATA_LEN,
+    .p_manufacturer_data = &adv_state,     // test_manufacturer,
     .service_data_len = 0,
     .p_service_data = NULL,
     .service_uuid_len = sizeof(state_service_uuid),

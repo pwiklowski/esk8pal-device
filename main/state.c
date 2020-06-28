@@ -6,6 +6,8 @@
 
 struct CurrentState state;
 
+struct CurrentStateAdvertisment adv_state;
+
 struct CurrentState *state_get() {
   return &state;
 }
