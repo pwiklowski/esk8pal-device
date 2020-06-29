@@ -183,11 +183,7 @@ void gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
       ESP_LOGE(GATTS_TABLE_TAG, "config adv data failed, error code = %x", ret);
     }
     adv_config_done |= ADV_CONFIG_FLAG;
-    // config scan response data
-    ret = esp_ble_gap_config_adv_data(&battery_scan_rsp_data);
-    if (ret) {
-      ESP_LOGE(GATTS_TABLE_TAG, "config scan response data failed, error code = %x", ret);
-    }
+
     adv_config_done |= SCAN_RSP_CONFIG_FLAG;
     esp_err_t create_attr_ret = esp_ble_gatts_create_attr_tab(gatt_db, gatts_if, BATTERY_IDX_NB, SVC_INST_ID);
     if (create_attr_ret) {
