@@ -22,14 +22,6 @@ typedef enum { WIFI_DISABLED, WIFI_AP, WIFI_CLIENT, WIFI_CLIENT_CONNECTED } wifi
 
 typedef enum { MANUAL_START_DISABLED, MANUAL_START_ENABLED } manual_start_t;
 
-struct CurrentStateAdvertisment {
-  uint16_t id;
-  DoubleCharacteristic current;
-  DoubleCharacteristic voltage;
-
-  uint8_t riding_state;
-};
-
 struct CurrentState {
   DoubleCharacteristic current;
   DoubleCharacteristic voltage;

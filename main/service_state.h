@@ -28,4 +28,12 @@ void state_update();
 
 bool is_state_service_connected();
 
+void state_set_adv_voltage(float voltage);
+
+void state_set_adv_current(float current);
+
+void state_set_adv_state(device_state_t state);
+
+void state_adv_data_update();
+
 #endif

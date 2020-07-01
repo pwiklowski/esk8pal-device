@@ -54,14 +54,15 @@ esp_ble_adv_data_t state_adv_data = {
     .max_interval = 0x0010, // slave connection max interval, Time =
                             // max_interval * 1.25 msec
     .appearance = 0x00,
-    .manufacturer_len = sizeof(adv_state), // TEST_MANUFACTURER_DATA_LEN,
-    .p_manufacturer_data = &adv_state,     // test_manufacturer,
+    .manufacturer_len = 0,    // TEST_MANUFACTURER_DATA_LEN,
+    .p_manufacturer_data = 0, // test_manufacturer,
     .service_data_len = 0,
     .p_service_data = NULL,
     .service_uuid_len = sizeof(state_service_uuid),
     .p_service_uuid = state_service_uuid,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
+static uint8_t adv_data[12];
 
 // scan response data
 esp_ble_adv_data_t state_scan_rsp_data = {
@@ -71,8 +72,8 @@ esp_ble_adv_data_t state_scan_rsp_data = {
     .min_interval = 0x0006,
     .max_interval = 0x0010,
     .appearance = 0x00,
-    .manufacturer_len = 0,       // TEST_MANUFACTURER_DATA_LEN,
-    .p_manufacturer_data = NULL, //&test_manufacturer[0],
+    .manufacturer_len = 10, // TEST_MANUFACTURER_DATA_LEN,
+    .p_manufacturer_data = adv_data,
     .service_data_len = 0,
     .p_service_data = NULL,
     .service_uuid_len = sizeof(state_service_uuid),
@@ -123,6 +124,14 @@ static const esp_gatts_attr_db_t gatt_db[STATE_IDX_NB] = {
 struct gatts_profile_inst init_state_service() {
   return state_profile_tab;
 }
+
+void state_set_adv_voltage(float voltage) { *((float *)&adv_data[2]) = voltage; }
+
+void state_set_adv_current(float current) { *((float *)&adv_data[6]) = current; }
+
+void state_set_adv_state(device_state_t state) { adv_data[10] = state; }
+
+void state_adv_data_update() { esp_ble_gap_config_adv_data(&state_scan_rsp_data); }
 
 void state_gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
                                        esp_ble_gatts_cb_param_t *param) {

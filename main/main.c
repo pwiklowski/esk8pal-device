@@ -18,6 +18,7 @@
 #include "service_battery.h"
 #include "service_location.h"
 #include "service_settings.h"
+#include "service_state.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -138,8 +139,10 @@ void main_task() {
       }
       update_battery_details();
       state_update();
+      state_adv_data_update();
     } else {
       state_update();
+      state_adv_data_update();
       vTaskDelayUntil(&xLastWakeTime, 900 / portTICK_PERIOD_MS);
       gpio_set_level(GPIO_NUM_22, 0);
       vTaskDelayUntil(&xLastWakeTime, 100 / portTICK_PERIOD_MS);

@@ -12,6 +12,7 @@
 #include "esp_gatts_api.h"
 #include "gatt.h"
 #include "service_battery.h"
+#include "service_state.h"
 
 #define GATTS_TABLE_TAG "BatteryService"
 
@@ -287,6 +288,7 @@ void battery_update_value(double value, uint16_t characteristic_index, bool forc
   case IDX_CHAR_VAL_VOLTAGE:
     if (state.voltage.value != value) {
       state.voltage.value = value;
+      state_set_adv_voltage(value);
       was_changed = true;
     }
     break;
@@ -294,6 +296,7 @@ void battery_update_value(double value, uint16_t characteristic_index, bool forc
     if (state.current.value != value) {
       state.current.value = value;
       was_changed = true;
+      state_set_adv_current(value);
     }
     break;
   case IDX_CHAR_VAL_USED_ENERGY:
