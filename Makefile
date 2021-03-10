@@ -3,7 +3,6 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := esk8-logger
+PROJECT_NAME := esk8pal
 
 include $(IDF_PATH)/make/project.mk
-

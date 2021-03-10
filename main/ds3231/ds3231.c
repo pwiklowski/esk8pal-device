@@ -55,11 +55,11 @@ esp_err_t i2c_dev_write(const void *out_reg, size_t out_reg_size, const void *ou
   return res;
 }
 
-inline esp_err_t i2c_dev_read_reg(uint8_t reg, void *in_data, size_t in_size) {
+esp_err_t i2c_dev_read_reg(uint8_t reg, void *in_data, size_t in_size) {
   return i2c_dev_read(&reg, 1, in_data, in_size);
 }
 
-inline esp_err_t i2c_dev_write_reg(uint8_t reg, const void *out_data, size_t out_size) {
+esp_err_t i2c_dev_write_reg(uint8_t reg, const void *out_data, size_t out_size) {
   return i2c_dev_write(&reg, 1, out_data, out_size);
 }
 

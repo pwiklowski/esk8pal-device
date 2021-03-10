@@ -45,6 +45,7 @@ struct Settings settings;
 esp_err_t i2c_init() {
   int i2c_master_port = I2C_NUM_0;
   i2c_config_t conf;
+  memset(&conf, 0, sizeof(i2c_config_t));
   conf.mode = I2C_MODE_MASTER;
   conf.sda_io_num = GPIO_NUM_23;
   conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
