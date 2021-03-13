@@ -241,10 +241,14 @@ void state_gatts_service_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t
 }
 
 void state_update() {
+  esp_ble_gatts_set_attr_value(state_handle_table[IDX_CHAR_VAL_STATE], sizeof(state), (uint8_t*) &state);
+
   if (state_notification_table[IDX_CHAR_CFG_STATE] == 0x0001) {
     esp_ble_gatts_send_indicate(state_profile_tab.gatts_if, connection_id, state_handle_table[IDX_CHAR_VAL_STATE],
-                                sizeof(state), (uint8_t *)&state, false);
+        sizeof(state), (uint8_t*) &state, false);
   }
 }
 
-bool is_state_service_connected() { return is_state_connected; }
+bool is_state_service_connected() {
+  return is_state_connected;
+}

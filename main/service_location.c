@@ -358,10 +358,12 @@ void location_update_value(double value, uint16_t characteristic_index, bool for
     break;
   }
 
-  if (location_notification_table[characteristic_index + 1] == 0x0001 && (was_changed || force_notify)) {
-    DoubleCharacteristic characteristic;
-    characteristic.value = value;
+  DoubleCharacteristic characteristic;
+  characteristic.value = value;
 
+  esp_ble_gatts_set_attr_value(location_handle_table[characteristic_index], sizeof(characteristic.bytes), (uint8_t *)characteristic.bytes);
+
+  if (location_notification_table[characteristic_index + 1] == 0x0001 && (was_changed || force_notify)) {
     ESP_LOGI(GATTS_TABLE_TAG, "location_update_value %d = %f", characteristic_index, value);
 
     esp_ble_gatts_send_indicate(location_profile_tab.gatts_if, connection_id,

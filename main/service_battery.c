@@ -315,9 +315,12 @@ void battery_update_value(double value, uint16_t characteristic_index, bool forc
     break;
   }
 
+  DoubleCharacteristic characteristic;
+  characteristic.value = value;
+
+  esp_ble_gatts_set_attr_value(battery_handle_table[characteristic_index], sizeof(characteristic.bytes), (uint8_t *)characteristic.bytes);
+
   if (battery_notification_table[characteristic_index + 1] == 0x0001 && (was_changed || force_notify)) {
-    DoubleCharacteristic characteristic;
-    characteristic.value = value;
 
     esp_ble_gatts_send_indicate(battery_profile_tab.gatts_if, connection_id, battery_handle_table[characteristic_index],
                                 sizeof(characteristic.bytes), (uint8_t *)characteristic.bytes, false);
