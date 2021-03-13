@@ -161,7 +161,7 @@ void ble_init() {
     return;
   }
 
-  esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(500);
+  esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(23);
   if (local_mtu_ret) {
     ESP_LOGE(GATTS_TAG, "set local  MTU failed, error code = %x", local_mtu_ret);
   }
